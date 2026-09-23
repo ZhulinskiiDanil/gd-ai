@@ -1,0 +1,45 @@
+{
+	"geode": "5.10.1",
+	"gd": {
+		"win": "2.2081",
+		"android": "2.2081",
+		"mac": "2.2081",
+		"ios": "2.2081"
+	},
+	"id": "zhulis.askdash",
+	"name": "AskDash",
+	"version": "v1.0.0",
+	"developer": "Zhulis",
+	"description": "AI assistant: ask anything about GD in-game",
+	"links": {
+		"source": "https://github.com/ZhulinskiiDanil/gd-ai"
+	},
+	"tags": [
+		"online",
+		"utility",
+		"interface"
+	],
+	"resources": {
+		"sprites": [
+			"logo.png"
+		]
+	},
+	"dependencies": {
+		"geode.node-ids": ">=v1.23.3"
+	},
+	"settings": {
+		"api-url": {
+			"type": "string",
+			"name": "API URL",
+			"description": "AskDash server address. The OpenAI key lives on the server, never in the mod :3",
+			"default": "https://gd-ai-server-production.up.railway.app",
+			"filter": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:/.-_~?#[]@!$&'()*+,;=%"
+		},
+		"send-game-context": {
+			"type": "bool",
+			"name": "Send game context",
+			"description": "Send your player name, current screen and the open level (name, ID, creator, difficulty, attempts, best percent) to the AI so it can answer questions about \"this level\".",
+			"default": true
+		}
+	}
+}
