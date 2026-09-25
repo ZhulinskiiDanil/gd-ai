@@ -1,7 +1,9 @@
 #include "index.hpp"
 
 #include "../../api/chat.hpp"
+#include "../PlansPopup/index.hpp"
 
+#include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/Label.hpp>
 
 static constexpr float POPUP_WIDTH = 400.f;
@@ -71,7 +73,34 @@ bool ChatPopup::init()
   clearBtn->setPosition({m_size.width - 22.f, m_size.height - 22.f});
   inputMenu->addChild(clearBtn);
 
+  // ! --- Plans, settings and status (top) --- !
+  auto plansSpr = ButtonSprite::create("Plans", "goldFont.fnt", "GJ_button_04.png", .8f);
+  plansSpr->setScale(.5f);
+  auto plansBtn = CCMenuItemSpriteExtra::create(
+      plansSpr, this, menu_selector(ChatPopup::onPlans));
+  plansBtn->setPosition({
+      clearBtn->getPositionX() - clearSpr->getScaledContentWidth() / 2 - plansSpr->getScaledContentWidth() / 2 - 4.f,
+      clearBtn->getPositionY(),
+  });
+  inputMenu->addChild(plansBtn);
+
+  auto settingsSpr = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+  settingsSpr->setScale(.45f);
+  auto settingsBtn = CCMenuItemSpriteExtra::create(
+      settingsSpr, this, menu_selector(ChatPopup::onSettings));
+  settingsBtn->setPosition({
+      plansBtn->getPositionX() - plansSpr->getScaledContentWidth() / 2 - settingsSpr->getScaledContentWidth() / 2 - 4.f,
+      clearBtn->getPositionY(),
+  });
+  inputMenu->addChild(settingsBtn);
+
   m_mainLayer->addChild(inputMenu);
+
+  m_statusLabel = CCLabelBMFont::create("", "chatFont.fnt");
+  m_statusLabel->setScale(.5f);
+  m_statusLabel->setOpacity(170);
+  m_statusLabel->setPosition({m_size.width / 2, m_size.height - 32.f});
+  m_mainLayer->addChild(m_statusLabel);
 
   // ! --- Messages list --- !
   float listBottom = PADDING * 2 + m_input->getContentHeight();
@@ -96,6 +125,7 @@ bool ChatPopup::init()
   m_mainLayer->addChild(m_emptyLabel);
 
   rebuildMessages();
+  loadStatus();
 
   return true;
 }
@@ -130,11 +160,13 @@ CCNode *ChatPopup::createBubble(ChatMessage const &message, bool isError)
   auto bg = CCScale9Sprite::create("square02_small.png");
   bg->setContentSize(bubbleSize);
   bg->setOpacity(isUser ? 110 : 60);
+
   if (isUser)
     bg->setColor({80, 160, 255});
 
   float bgX = isUser ? listWidth - BUBBLE_PADDING - bubbleSize.width / 2
                      : BUBBLE_PADDING + bubbleSize.width / 2;
+
   bg->setPosition({bgX, bubbleSize.height / 2});
   bubble->addChild(bg);
 
@@ -169,6 +201,7 @@ void ChatPopup::layoutMessages()
   auto children = CCArrayExt<CCNode *>(content->getChildren());
 
   float totalHeight = BUBBLE_GAP;
+
   for (auto child : children)
     totalHeight += child->getContentHeight() + BUBBLE_GAP;
 
@@ -176,6 +209,7 @@ void ChatPopup::layoutMessages()
   content->setContentSize({m_scroll->getContentWidth(), height});
 
   float y = height - BUBBLE_GAP;
+
   for (auto child : children)
   {
     y -= child->getContentHeight();
@@ -202,6 +236,7 @@ void ChatPopup::onSend(CCObject *)
     return;
 
   auto text = utils::string::trim(m_input->getString());
+
   if (text.empty())
     return;
 
@@ -209,12 +244,13 @@ void ChatPopup::onSend(CCObject *)
   m_input->defocus();
 
   ChatStore::messages().push_back({"user", text});
+
   rebuildMessages();
   setSending(true);
 
   m_task.spawn(
       api::chat::sendMessages(ChatStore::messages()),
-      [this](web::WebResponse response)
+      [this](Result<web::WebResponse> response)
       {
         setSending(false);
 
@@ -222,20 +258,61 @@ void ChatPopup::onSend(CCObject *)
 
         if (result.isErr())
         {
-          log::error("Chat request failed: {}", result.unwrapErr());
-          addErrorBubble(result.unwrapErr());
+          auto const &error = result.unwrapErr();
+
+          log::error("Chat request failed: {}", error.message);
+          addErrorBubble(error.message);
+
+          if (error.upgrade)
+            onPlans(nullptr);
+
           return;
         }
 
         ChatStore::messages().push_back({"assistant", result.unwrap()});
+
         rebuildMessages();
+        loadStatus();
       });
 }
 
 void ChatPopup::onClear(CCObject *)
 {
   m_task.cancel();
+
   setSending(false);
   ChatStore::messages().clear();
+
   rebuildMessages();
+}
+
+void ChatPopup::loadStatus()
+{
+  m_statusTask.spawn(billing::fetchStatus(), [this](Result<web::WebResponse> response)
+                     {
+    auto status = billing::parseStatus(response);
+    
+    if (status.isErr())
+    {
+      log::warn("Plan status failed: {}", status.unwrapErr().message);
+      m_statusLabel->setString("");
+
+      return;
+    }
+
+    m_statusLabel->setString(billing::describe(status.unwrap()).c_str()); });
+}
+
+void ChatPopup::onPlans(CCObject *)
+{
+  auto popup = PlansPopup::create([self = Ref(this)](billing::Status const &status)
+                                  { self->m_statusLabel->setString(billing::describe(status).c_str()); });
+
+  if (popup)
+    popup->show();
+}
+
+void ChatPopup::onSettings(CCObject *)
+{
+  openSettingsPopup(Mod::get());
 }

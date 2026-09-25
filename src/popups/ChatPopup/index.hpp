@@ -16,13 +16,21 @@ private:
   LoadingSpinner *m_spinner = nullptr;
   CCLabelBMFont *m_emptyLabel = nullptr;
 
-  async::TaskHolder<web::WebResponse> m_task;
+  // Plan and usage left / "Free: 40% left today"
+  CCLabelBMFont *m_statusLabel = nullptr;
+
+  async::TaskHolder<Result<web::WebResponse>> m_task;
+  async::TaskHolder<Result<web::WebResponse>> m_statusTask;
   bool m_sending = false;
 
   bool init();
 
   void onSend(CCObject *);
   void onClear(CCObject *);
+  void onPlans(CCObject *);
+  void onSettings(CCObject *);
+
+  void loadStatus();
 
   void setSending(bool sending);
 
