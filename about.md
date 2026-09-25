@@ -13,14 +13,27 @@ The AskDash button is in:
 
 ## What it knows
 
-- <cj>Up-to-date GD info</c>: the AI can search GD sites (the GD wiki, Pointercrate, the Demonlist, AREDL, GDBrowser, Geode docs and Reddit) for recent facts.
+- <cj>Up-to-date GD info</c> (<cy>Plus</c> and <cy>Pro</c>): the AI searches GD sites (the GD wiki, Pointercrate, the Demonlist, AREDL, GDBrowser, Geode docs and Reddit) for recent facts. On Free it answers from what it already knows, which can be out of date.
 - <cj>What you are doing right now</c>: if you ask about "this level", the AI knows which level is open and how you are doing on it.
+
+## Plans
+
+Every answer costs money to generate, so AskDash has a <cg>free daily limit</c>. If you use it a lot, there are two cheap paid plans. Their prices just cover the AI costs.
+Paid plans raise the limit and let the AI <cy>search the web</c> for recent info.
+
+Press <cy>Plans</c> in the chat to see how much you have left. To upgrade, buy a plan and paste the key you get into the same window. The plan stays with your GD account.
+
+## Logging in
+
+AskDash needs you to be <cy>logged into your GD account</c>. It checks this with <cy>Argon</c>, the login check a lot of Geode mods share. To confirm it's you, Argon sends one GD message from your account to its bot. You can delete that message. Your password never leaves the game.
 
 ## Privacy: what is sent
 
 <cr>AskDash only works online.</c> When you press Send, the mod sends this to the AskDash server, which forwards it to OpenAI:
 - your chat messages in the current session (up to the last 20)
 - <cy>game context</c>: your player name, what screen you are on, and the open level (name, ID, creator, difficulty, stars, length, your attempts and best percent)
+
+The AskDash server also gets your GD <cy>account ID</c> and your Argon login token. It uses them to count your usage and find your plan, and doesn't pass them on to OpenAI. The server keeps your account ID, your GD name, how much of your limit you've used, and your plan key if you have one. It doesn't keep your chat messages.
 
 You can turn off the game context in the <cy>mod settings</c> ("Send game context"). Your chat history is kept only in memory and is cleared when you close the game or press the trash button.
 
