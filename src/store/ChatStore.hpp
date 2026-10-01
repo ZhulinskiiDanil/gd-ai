@@ -25,8 +25,12 @@ struct ChatMessage
 // Kept on disk when "save-history" is on, otherwise until user leave gd
 namespace ChatStore
 {
-  std::vector<ChatMessage> &messages();
+  // Key of the chat not tied to a level, others use levelKey()
+  inline constexpr auto GENERAL = "general";
 
-  // Call after changing messages()
-  void save();
+  // Messages of a chat, empty if it has none yet
+  std::vector<ChatMessage> &messages(std::string const &key);
+
+  // Call after changing messages(key)
+  void save(std::string const &key);
 }

@@ -41,6 +41,12 @@ Have <cy>Death Tracker</c> installed? AskDash reads its stats for the open level
 
 After you leave a level (10+ attempts by default), AskDash shows how the session went: attempts, best percent and the percents where you died the most. Press <cg>Ask AskDash</c> to get tips on what to practice.
 
+It also remembers your past sessions on each level, so it shows how you did last time and the AI can tell if you are improving.
+
+## Chats
+
+Each level has its own chat: ask from a level and you continue the conversation about it. Press <cg>General</c> at the top of the chat to switch to the usual chat, and <cg>This level</c> to go back. The buttons above the input are quick questions that fit where you are.
+
 Replies appear while they are being written. Use the copy button next to a reply to copy it, and <cg>Retry</c> when a request fails.
 
 ## Plans
@@ -58,11 +64,11 @@ AskDash needs you to be <cy>logged into your GD account</c>. It checks this with
 
 <cr>AskDash only works online.</c> When you press Send, the mod sends this to the AskDash server, which forwards it to OpenAI:
 - your chat messages (up to the last 20)
-- <cy>game context</c>: your player name, your stats, your linked demon list usernames, your Death Tracker stats for the open level (if installed), your attempts and deaths on the open level this game session, what screen you are on, and the open level (name, ID, creator, difficulty, stars, length, song, your attempts and best percent)
+- <cy>game context</c>: your player name, your stats, your linked demon list usernames, your Death Tracker stats for the open level (if installed), your attempts and deaths on the open level this game session and your past sessions on it, what screen you are on, and the open level (name, ID, creator, difficulty, stars, length, song, your attempts and best percent)
 
 The AskDash server also gets your GD <cy>account ID</c> and your Argon login token. It uses them to count your usage and find your plan, and doesn't pass them on to OpenAI. The server keeps your account ID, your GD name, how much of your limit you've used, and your plan key if you have one. It doesn't keep your chat messages.
 
-You can turn off the game context in the <cy>mod settings</c> ("Send game context"). The last 50 chat messages are saved <cg>only on your computer</c> so they survive a restart; turn off "Save chat history" to keep them in memory only, or press the trash button to delete them.
+You can turn off the game context in the <cy>mod settings</c> ("Send game context"). The last 50 messages of each chat are saved <cg>only on your computer</c> so they survive a restart; turn off "Save chat history" to keep them in memory only, or press the trash button to delete a chat. Your past sessions on levels are also saved only on your computer; turn off "Save level progress" to delete them.
 
 AskDash never sends your account password, save file or anything else from your game.
 
@@ -71,7 +77,9 @@ AskDash never sends your account password, save file or anything else from your 
 - **Open AskDash**: the keybind that opens the chat.
 - **API URL**: the AskDash server address. Only change it if you run your own server.
 - **Send game context**: share the current level, your stats and progress with the AI (on by default).
-- **Save chat history**: keep the chat between game sessions (on by default).
+- **Save chat history**: keep the chats between game sessions (on by default).
+- **Chat per level**: keep a separate chat for each level (on by default).
+- **Save level progress**: keep your past sessions on each level for the summary and the AI (on by default).
 - **Session summary** / **Summary min attempts**: show the summary after leaving a level, and after how many attempts.
 - **Use Death Tracker**: send your Death Tracker stats for the open level (on by default, only works with Death Tracker installed).
 - **demonlist.org username** / **Pointercrate username**: link your demon list profiles.

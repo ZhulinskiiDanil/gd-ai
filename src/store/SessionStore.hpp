@@ -9,6 +9,8 @@ struct LevelSession
 {
   int levelId = 0;
   std::string levelName;
+  // Unix seconds, tells this session apart in ProgressStore
+  int64_t startedAt = 0;
   int attempts = 0;
   int bestPercent = 0;
   bool practice = false;

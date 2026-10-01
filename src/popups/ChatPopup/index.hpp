@@ -25,6 +25,15 @@ private:
   CCMenuItemSpriteExtra *m_sendBtn = nullptr;
   LoadingSpinner *m_spinner = nullptr;
   CCNode *m_emptyNode = nullptr;
+  CCLabelBMFont *m_emptyLabel = nullptr;
+
+  // ! --- Chats --- !
+  // ChatStore key of the shown chat
+  std::string m_chatKey = ChatStore::GENERAL;
+  // Chat of the open level, empty in menus or with "level-chats" off
+  std::string m_levelChatKey;
+  std::string m_levelName;
+  ButtonSprite *m_switchSpr = nullptr;
 
   // Plan and usage left / "Free: 40% left today"
   CCLabelBMFont *m_statusLabel = nullptr;
@@ -45,6 +54,10 @@ private:
   void onClear(CCObject *);
   void onPlans(CCObject *);
   void onSettings(CCObject *);
+  void onSwitchChat(CCObject *);
+
+  bool isLevelChat() const;
+  void updateChatLabels();
 
   void loadStatus();
   void sendText(std::string const &text);
@@ -59,7 +72,8 @@ private:
   void rebuildMessages();
   CCNode *createBubble(ChatMessage const &message, BubbleKind kind = BubbleKind::Normal);
   CCMenu *createActionsMenu(std::vector<ChatAction> const &actions);
-  CCNode *createEmptyState(CCSize const &listSize);
+  CCNode *createEmptyState();
+  CCMenu *createQuickPrompts(float width);
   void layoutMessages();
 
 public:
