@@ -18,6 +18,8 @@ namespace live
 
   bool isSupported();
   bool isActive();
+  // Live talk is on with Savage roasts and the pranks setting: the game may play rare pranks on the player
+  bool pranksAllowed();
   State state();
 
   // What AskDash is saying, changes id with every new reply
