@@ -1,3 +1,8 @@
+# v1.8.0
+
+ * Pick the voice AskDash talks with in live talk (10 voices). Changing it during live talk restarts it, so you hear the new voice right away
+ * Live talk stays fresh longer: fewer jokes about the same percents and misclicks, sometimes silence, praise that turns into a roast, totally unrelated fun facts out of boredom, and more vegetables. <cy>Savage</c> goes right to the edge
+
 # v1.7.0
 
  * <cy>Live talk</c> (Windows): talk with AskDash by voice while you play. It listens to your microphone, answers out loud, roasts your deaths (walls, chokes near your best, thrown long runs), hypes you mid-run when you pass your best and breaks the silence now and then. Press <cy>Ctrl+Shift+L</c> in a level or the <cg>LIVE</c> button in the pause menu

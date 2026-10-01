@@ -92,6 +92,7 @@ AskDash never sends your account password, save file or anything else from your 
 - **Live talk: language**: the language AskDash speaks, <cy>Auto</c> answers in the language you speak.
 - **Live talk: roast level**: <cy>Gentle</c>, <cy>Spicy</c> or <cy>Savage</c>.
 - **Live talk: chattiness**: how often AskDash speaks up on its own (<cy>Quiet</c>, <cy>Normal</c>, <cy>Chatty</c>).
+- **Live talk: voice**: the voice AskDash talks with, changing it during live talk restarts it with the new voice.
 - **Live talk: subtitles**: show what AskDash says (English only, off by default).
 - **Your skill**: how good you are at GD, so tips fit you.
 - **API URL**: the AskDash server address. Only change it if you run your own server.

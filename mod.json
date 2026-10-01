@@ -73,6 +73,13 @@
 			"default": "Normal",
 			"one-of": ["Quiet", "Normal", "Chatty"]
 		},
+		"live-talk-voice": {
+			"type": "string",
+			"name": "Live talk: voice",
+			"description": "The voice AskDash talks with. <cy>Marin</c> and <cy>Cedar</c> sound the most natural. Changing it during live talk restarts it, so you hear the new voice right away.",
+			"default": "Default",
+			"one-of": ["Default", "Marin", "Cedar", "Alloy", "Ash", "Ballad", "Coral", "Echo", "Sage", "Shimmer", "Verse"]
+		},
 		"live-talk-subtitles": {
 			"type": "bool",
 			"name": "Live talk: subtitles",
