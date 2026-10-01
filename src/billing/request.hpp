@@ -11,4 +11,11 @@ namespace billing
 
   std::string apiUrl(std::string_view path);
   ResponseFuture send(std::string method, std::string url, RequestFactory makeRequest);
+
+  // ! --- Login headers for requests outside geode::utils::web (live talk WebSocket) --- !
+  using Headers = std::vector<std::pair<std::string, std::string>>;
+
+  arc::Future<geode::Result<Headers>> authHeaders();
+  // Forgets the login token, the next authHeaders() logs in again
+  void clearAuth();
 }
