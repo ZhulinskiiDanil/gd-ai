@@ -45,7 +45,7 @@ It also remembers your past sessions on each level, so it shows how you did last
 
 ## Chats
 
-Each level has its own chat: ask from a level and you continue the conversation about it. Press <cg>General</c> at the top of the chat to switch to the usual chat, and <cg>This level</c> to go back.
+Each level has its own chat: ask from a level and you continue the conversation about it. Press <cg>General</c> at the top of the chat to switch to the usual chat, and <cg>This level</c> to go back. The buttons above the input are quick questions that fit where you are.
 
 Replies appear while they are being written. Use the copy button next to a reply to copy it, and <cg>Retry</c> when a request fails.
 

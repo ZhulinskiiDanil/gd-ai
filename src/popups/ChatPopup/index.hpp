@@ -72,7 +72,8 @@ private:
   void rebuildMessages();
   CCNode *createBubble(ChatMessage const &message, BubbleKind kind = BubbleKind::Normal);
   CCMenu *createActionsMenu(std::vector<ChatAction> const &actions);
-  CCNode *createEmptyState(CCSize const &listSize);
+  CCNode *createEmptyState();
+  CCMenu *createQuickPrompts(float width);
   void layoutMessages();
 
 public:

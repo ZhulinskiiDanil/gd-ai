@@ -3,6 +3,8 @@
 #include "../../api/chat.hpp"
 #include "../../api/context.hpp"
 #include "../../actions/navigate.hpp"
+#include "../../store/ProgressStore.hpp"
+#include "../../store/SessionStore.hpp"
 #include "../../store/levelKey.hpp"
 #include "../PlansPopup/index.hpp"
 
@@ -21,13 +23,45 @@ static constexpr float ACTION_SCALE = .45f;
 static constexpr float ACTION_GAP = 4.f;
 static constexpr float COPY_SCALE = .45f;
 static constexpr float POLL_INTERVAL = .25f;
+static constexpr float PROMPTS_HEIGHT = 16.f;
 static constexpr float TITLE_WIDTH = 170.f;
+static constexpr size_t MAX_QUICK_PROMPTS = 3;
 
-static constexpr std::array QUICK_PROMPTS = {
-    "What is this level?",
-    "Open the #1 demon",
-    "Open the most popular levels",
-};
+static bool hasDeaths(std::optional<LevelSession> const &session)
+{
+  return session && (!session->deaths.empty() || !session->runs.empty());
+}
+
+// Questions that fit where the player is, sent as is when pressed
+static std::vector<std::string> quickPrompts(api::context::Scene const &scene)
+{
+  if (scene.name == "editor")
+    return {"Ideas for my level", "How do move triggers work?", "Editor shortcuts"};
+
+  if (scene.name == "level-edit")
+    return {"Ideas for my level", "How do I get my level rated?", "What song is this?"};
+
+  if (!scene.level)
+    return {"What demon should I beat next?", "Open the #1 demon", "Show trending levels"};
+
+  bool playing = scene.name == "playing";
+  auto const &last = SessionStore::last();
+  bool struggled = playing ? hasDeaths(SessionStore::current())
+                           : hasDeaths(last) && last->isOf(scene.level);
+
+  std::vector<std::string> prompts;
+  if (struggled)
+    prompts.push_back("Where do I struggle?");
+  if (!ProgressStore::history(levelKey(scene.level)).empty())
+    prompts.push_back("How is my progress here?");
+
+  prompts.push_back(playing ? "Tips for this level" : "Is this level hard for me?");
+  prompts.push_back(playing ? "What song is this?" : "Levels like this one");
+
+  if (prompts.size() > MAX_QUICK_PROMPTS)
+    prompts.resize(MAX_QUICK_PROMPTS);
+  return prompts;
+}
 
 // Color tags like <cy>...</c> are only for the game, not for the clipboard
 static std::string stripColorTags(std::string const &text)
@@ -144,8 +178,14 @@ bool ChatPopup::init(std::string const &prompt)
   m_statusLabel->setPosition({m_size.width / 2, m_size.height - 32.f});
   m_mainLayer->addChild(m_statusLabel);
 
+  // ! --- Quick prompts row above the input --- !
+  float promptsY = PADDING * 1.5f + m_input->getContentHeight();
+  auto prompts = createQuickPrompts(m_size.width - PADDING * 2);
+  prompts->setPosition({m_size.width / 2, promptsY + PROMPTS_HEIGHT / 2});
+  m_mainLayer->addChild(prompts);
+
   // ! --- Messages list --- !
-  float listBottom = PADDING * 2 + m_input->getContentHeight();
+  float listBottom = promptsY + PROMPTS_HEIGHT + PADDING / 2;
   float listTop = m_size.height - 38.f;
   CCSize listSize = {m_size.width - PADDING * 2, listTop - listBottom};
 
@@ -160,7 +200,7 @@ bool ChatPopup::init(std::string const &prompt)
   m_scroll->setPosition({PADDING, listBottom});
   m_mainLayer->addChild(m_scroll);
 
-  m_emptyNode = createEmptyState(listSize);
+  m_emptyNode = createEmptyState();
   m_emptyNode->setPosition({PADDING + listSize.width / 2, listBottom + listSize.height / 2});
   m_mainLayer->addChild(m_emptyNode);
 
@@ -300,34 +340,35 @@ CCMenu *ChatPopup::createActionsMenu(std::vector<ChatAction> const &actions)
   return menu;
 }
 
-CCNode *ChatPopup::createEmptyState(CCSize const &listSize)
+CCNode *ChatPopup::createEmptyState()
 {
   auto node = CCNode::create();
 
   m_emptyLabel = CCLabelBMFont::create("", "bigFont.fnt");
   m_emptyLabel->setScale(.35f);
   m_emptyLabel->setOpacity(120);
-  m_emptyLabel->setPositionY(listSize.height / 4);
   node->addChild(m_emptyLabel);
 
+  return node;
+}
+
+CCMenu *ChatPopup::createQuickPrompts(float width)
+{
   auto menu = CCMenu::create();
-  menu->setPosition({0.f, -listSize.height / 8});
-  menu->setContentSize({listSize.width, 30.f});
+  menu->setContentSize({width, PROMPTS_HEIGHT});
   menu->setLayout(RowLayout::create()->setGap(6.f));
 
-  for (auto prompt : QUICK_PROMPTS)
+  for (auto const &prompt : quickPrompts(api::context::currentScene()))
   {
-    auto spr = ButtonSprite::create(prompt, "bigFont.fnt", "GJ_button_04.png", .8f);
-    spr->setScale(.4f);
+    auto spr = ButtonSprite::create(prompt.c_str(), "bigFont.fnt", "GJ_button_04.png", .8f);
+    spr->setScale(.35f);
 
     menu->addChild(CCMenuItemExt::createSpriteExtra(spr, [this, prompt](auto)
                                                     { sendText(prompt); }));
   }
 
   menu->updateLayout();
-  node->addChild(menu);
-
-  return node;
+  return menu;
 }
 
 void ChatPopup::rebuildMessages()
