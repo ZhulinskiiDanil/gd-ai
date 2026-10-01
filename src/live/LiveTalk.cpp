@@ -232,8 +232,15 @@ static void start()
   s.subtitle.clear();
   s.replyDone = true;
 
-  auto start = matjson::makeObject({{"type", "start"}});
-  if (Mod::get()->getSettingValue<bool>("send-game-context"))
+  auto mod = Mod::get();
+  auto start = matjson::makeObject({
+      {"type", "start"},
+      {"prefs", matjson::makeObject({
+                    {"language", mod->getSettingValue<std::string>("live-talk-language")},
+                    {"roast", utils::string::toLower(mod->getSettingValue<std::string>("live-talk-roast"))},
+                })},
+  });
+  if (mod->getSettingValue<bool>("send-game-context"))
     start["context"] = api::context::collect();
   s.startMessage = start.dump(matjson::NO_INDENTATION);
 

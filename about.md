@@ -41,7 +41,7 @@ Have <cy>Death Tracker</c> installed? AskDash reads its stats for the open level
 
 Talk with AskDash <cy>by voice while you play</c>. Press <cy>Ctrl+Shift+L</c> in a level (or the <cg>LIVE</c> button in the pause menu): AskDash listens to your microphone, answers out loud and reacts to your deaths and new bests. Expect jokes at your expense: it is here to have fun with you, and really easy questions may get a joke instead of an answer until you insist.
 
-Use <cg>headphones</c> if you can. With speakers AskDash doesn't listen while it talks, so it doesn't hear itself. Its replies show as subtitles when they are in English.
+Use <cg>headphones</c> if you can: then you can interrupt AskDash by talking. With speakers AskDash doesn't listen while it talks, so it doesn't hear itself. It speaks the language you pick, or the one you speak to it. Subtitles can be turned on in the settings, they show replies in English.
 
 Live talk is only available on <cy>Windows</c> for now. It has its own daily limit on Free, paid plans use their normal limit.
 
@@ -74,13 +74,13 @@ AskDash needs you to be <cy>logged into your GD account</c>. It checks this with
 
 <cr>AskDash only works online.</c> When you press Send, the mod sends this to the AskDash server, which forwards it to OpenAI:
 - your chat messages (up to the last 20)
-- <cy>game context</c>: your player name, your stats, your linked demon list usernames, your Death Tracker stats for the open level (if installed), your attempts and deaths on the open level this game session and your past sessions on it, what screen you are on, and the open level (name, ID, creator, difficulty, stars, length, song, your attempts and best percent)
+- <cy>game context</c>: your player name, your skill if you picked it, your stats, your linked demon list usernames, your Death Tracker stats for the open level (if installed), your attempts and deaths on the open level this game session and your past sessions on it, what screen you are on, and the open level (name, ID, creator, difficulty, stars, length, song, your attempts and best percent)
 
 The AskDash server also gets your GD <cy>account ID</c> and your Argon login token. It uses them to count your usage and find your plan, and doesn't pass them on to OpenAI. The server keeps your account ID, your GD name, how much of your limit you've used, and your plan key if you have one. It doesn't keep your chat messages.
 
 You can turn off the game context in the <cy>mod settings</c> ("Send game context"). The last 50 messages of each chat are saved <cg>only on your computer</c> so they survive a restart; turn off "Save chat history" to keep them in memory only, or press the trash button to delete a chat. Your past sessions on levels are also saved only on your computer; turn off "Save level progress" to delete them.
 
-<cy>Live talk</c> (only while it is on): your microphone audio and the same game context, plus your deaths and new bests as they happen, go to the AskDash server and OpenAI. The audio isn't saved. AskDash asks before the first time.
+<cy>Live talk</c> (only while it is on): your microphone audio and the same game context, plus your deaths and new bests as they happen and the language and roast level you picked, go to the AskDash server and OpenAI. The audio isn't saved. AskDash asks before the first time.
 
 AskDash never sends your account password, save file or anything else from your game.
 
@@ -89,6 +89,10 @@ AskDash never sends your account password, save file or anything else from your 
 - **Open AskDash**: the keybind that opens the chat.
 - **Live talk**: the keybind that starts or stops live talk in a level (Windows only).
 - **Live talk: I use headphones**: lets you interrupt AskDash while it talks. Leave it off with speakers.
+- **Live talk: language**: the language AskDash speaks, <cy>Auto</c> answers in the language you speak.
+- **Live talk: roast level**: <cy>Gentle</c>, <cy>Spicy</c> or <cy>Savage</c>.
+- **Live talk: subtitles**: show what AskDash says (English only, off by default).
+- **Your skill**: how good you are at GD, so tips fit you.
 - **API URL**: the AskDash server address. Only change it if you run your own server.
 - **Send game context**: share the current level, your stats and progress with the AI (on by default).
 - **Save chat history**: keep the chats between game sessions (on by default).

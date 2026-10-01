@@ -171,7 +171,7 @@ void LiveOverlay::showSubtitle(std::string const &original)
   // GD fonts only have basic Latin: replies in other languages are only heard
   bool printable = std::all_of(text.begin(), text.end(), [](unsigned char c)
                                { return c >= 32 && c < 127; });
-  if (text.empty() || !printable)
+  if (text.empty() || !printable || !Mod::get()->getSettingValue<bool>("live-talk-subtitles"))
   {
     m_subtitle->setVisible(false);
     return;
