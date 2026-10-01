@@ -2,7 +2,7 @@
 
  * Pick the voice AskDash talks with in live talk (10 voices). Changing it during live talk restarts it, so you hear the new voice right away
  * <cy>Savage</c> live talk plays rare pranks on you: it may pause your game mid-run, fake a death sound, rename your attempt or send a fake notification. Never close to your best, and <cy>Live talk: Savage pranks</c> turns them off
- * Live talk stays fresh longer: fewer jokes about the same percents and misclicks, sometimes silence, praise that turns into a roast, totally unrelated fun facts out of boredom, and more vegetables. <cy>Savage</c> goes right to the edge
+ * Live talk stays fresh longer: fewer jokes about the same percents and misclicks, sometimes silence, praise that turns into a roast, totally unrelated fun facts out of boredom, and it calls you a vegetable now and then. <cy>Savage</c> goes right to the edge
 
 # v1.7.0
 
