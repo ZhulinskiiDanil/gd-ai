@@ -1,3 +1,8 @@
+# v1.8.1
+
+ * <cy>Savage</c> live talk really swears now (no asterisks), about your fails and never you, and softens right away if you ask it to
+ * AskDash no longer keeps calling you a vegetable: its roasts come from what just happened and what you said, without the same insults and metaphors line after line
+
 # v1.8.0
 
  * Pick the voice AskDash talks with in live talk (10 voices). Changing it during live talk restarts it, so you hear the new voice right away
