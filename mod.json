@@ -58,6 +58,12 @@
 			"description": "Keep the last 50 chat messages on your computer between game sessions. Turning it off deletes the saved history.",
 			"default": true
 		},
+		"save-progress": {
+			"type": "bool",
+			"name": "Save level progress",
+			"description": "Keep your past sessions on each level (attempts, best percent, where you died) on your computer, so the summary and the AI can compare them. Turning it off deletes the saved progress.",
+			"default": true
+		},
 		"session-summary": {
 			"type": "bool",
 			"name": "Session summary",

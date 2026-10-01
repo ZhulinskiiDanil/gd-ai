@@ -1,7 +1,10 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 
+#include "../store/ProgressStore.hpp"
 #include "../store/SessionStore.hpp"
+
+#include <ctime>
 
 using namespace geode::prelude;
 
@@ -22,6 +25,7 @@ class $modify(AskDashPlayLayer, PlayLayer)
     SessionStore::current() = LevelSession{
         .levelId = level->m_levelID.value(),
         .levelName = std::string(level->m_levelName),
+        .startedAt = std::time(nullptr),
     };
     return true;
   }
@@ -79,6 +83,7 @@ class $modify(AskDashPlayLayer, PlayLayer)
     if (auto &session = SessionStore::current())
     {
       session->attempts = m_attempts;
+      ProgressStore::record(*session);
 
       auto mod = Mod::get();
       SessionStore::summaryPending() =

@@ -1,6 +1,8 @@
 #include "context.hpp"
 #include "../integrations/deathTracker.hpp"
+#include "../store/ProgressStore.hpp"
 #include "../store/SessionStore.hpp"
+#include "../store/levelKey.hpp"
 
 using namespace geode::prelude;
 
@@ -99,49 +101,44 @@ static matjson::Value collectProfiles()
 }
 
 // The level being played, or the last time it was played this game session
-static std::optional<matjson::Value> collectSession(GJGameLevel *level)
+static std::optional<LevelSession> findSession(GJGameLevel *level)
 {
   if (auto play = PlayLayer::get(); play && SessionStore::current())
   {
     auto session = *SessionStore::current();
     session.attempts = play->m_attempts;
-    return SessionStore::toJson(session);
+    return session;
   }
 
   if (auto const &last = SessionStore::last(); last && last->isOf(level))
-    return SessionStore::toJson(*last);
+    return *last;
 
   return std::nullopt;
 }
 
-matjson::Value api::context::collect()
+api::context::Scene api::context::currentScene()
 {
-  std::string scene = "menu";
-  GJGameLevel *level = nullptr;
-
   if (auto play = PlayLayer::get())
-  {
-    scene = "playing";
-    level = play->m_level;
-  }
-  else if (auto editor = LevelEditorLayer::get())
-  {
-    scene = "editor";
-    level = editor->m_level;
-  }
-  else if (auto running = CCDirector::get()->getRunningScene())
+    return {"playing", play->m_level};
+
+  if (auto editor = LevelEditorLayer::get())
+    return {"editor", editor->m_level};
+
+  if (auto running = CCDirector::get()->getRunningScene())
   {
     if (auto info = running->getChildByType<LevelInfoLayer>(0))
-    {
-      scene = "level-info";
-      level = info->m_level;
-    }
-    else if (auto edit = running->getChildByType<EditLevelLayer>(0))
-    {
-      scene = "level-edit";
-      level = edit->m_level;
-    }
+      return {"level-info", info->m_level};
+
+    if (auto edit = running->getChildByType<EditLevelLayer>(0))
+      return {"level-edit", edit->m_level};
   }
+
+  return {"menu", nullptr};
+}
+
+matjson::Value api::context::collect()
+{
+  auto [scene, level] = currentScene();
 
   auto context = matjson::makeObject({
       {"scene", scene},
@@ -168,8 +165,13 @@ matjson::Value api::context::collect()
     if (auto deaths = integrations::deathTracker::collect(level))
       context["deathTracker"] = *deaths;
 
-    if (auto session = collectSession(level))
-      context["session"] = *session;
+    auto session = findSession(level);
+    if (session)
+      context["session"] = SessionStore::toJson(*session);
+
+    // Past sessions, without the one already sent as "session"
+    if (auto progress = ProgressStore::toJson(levelKey(level), session ? session->startedAt : 0))
+      context["progress"] = *progress;
   }
 
   return context;

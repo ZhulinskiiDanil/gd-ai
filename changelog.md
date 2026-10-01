@@ -1,3 +1,7 @@
+# v1.6.0
+
+ * Your sessions on each level are saved on your computer. The session summary shows how you did last time, and the AI can tell if you are improving (can be turned off in settings)
+
 # v1.5.1
 
  * Session summary knows where each attempt started: start pos and practice runs are shown separately (like 50-63%), and deaths and the best percent only count attempts from 0%

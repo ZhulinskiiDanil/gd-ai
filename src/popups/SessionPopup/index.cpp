@@ -1,6 +1,8 @@
 #include "index.hpp"
 
 #include "../ChatPopup/index.hpp"
+#include "../../store/ProgressStore.hpp"
+#include "../../store/levelKey.hpp"
 
 static constexpr float POPUP_WIDTH = 280.f;
 static constexpr float POPUP_HEIGHT = 220.f;
@@ -44,6 +46,21 @@ bool SessionPopup::init(LevelSession session)
   };
 
   addLine(fmt::format("{} attempts, best {}% from 0", m_session.attempts, m_session.bestPercent), .45f);
+
+  // ! --- Compared with the previous session --- !
+  auto history = ProgressStore::history(levelKey(m_session.levelId, m_session.levelName), m_session.startedAt);
+  if (!history.empty())
+  {
+    auto const &previous = history.back();
+    auto label = CCLabelBMFont::create(
+        fmt::format("Last time ({}): {} attempts, best {}%",
+                    ProgressStore::describeAgo(previous.startedAt), previous.attempts, previous.bestPercent)
+            .c_str(),
+        "bigFont.fnt");
+    label->setScale(.3f);
+    label->setColor(m_session.bestPercent > previous.bestPercent ? ccColor3B{120, 255, 120} : ccColor3B{200, 200, 200});
+    lines->addChild(label);
+  }
 
   auto top = m_session.topDeaths(SHOWN_DEATHS);
   auto runs = m_session.topRuns(SHOWN_RUNS);
@@ -93,6 +110,6 @@ void SessionPopup::onAsk(CCObject *sender)
   onClose(sender);
 
   if (auto popup = ChatPopup::create(
-          "I just played this level. Here is my session: where do I struggle and what should I practice?"))
+          "I just played this level. Here is my session: where do I struggle, what should I practice and am I improving?"))
     popup->show();
 }
