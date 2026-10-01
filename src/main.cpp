@@ -15,6 +15,8 @@ using namespace geode::prelude;
 
 // Waits for the scene transition, a popup shown during it lands in the old scene
 static constexpr float SUMMARY_DELAY = .6f;
+// Set once the player answered if they want session summaries
+static constexpr auto SUMMARY_ASKED_KEY = "session-summary-asked";
 
 static void openChat()
 {
@@ -46,6 +48,37 @@ static void addAskDashButton(CCNode *parent, char const *menuID, CircleBaseSize 
   menu->updateLayout();
 }
 
+// The first summary asks if the player wants them at all, "No" turns the setting off
+static void askOnceThenShowSummary(LevelSession const &session)
+{
+  auto mod = Mod::get();
+  if (mod->getSavedValue<bool>(SUMMARY_ASKED_KEY))
+  {
+    if (auto popup = SessionPopup::create(session))
+      popup->show();
+    return;
+  }
+
+  createQuickPopup(
+      "Session summary",
+      "After leaving a level, AskDash can show your <cy>attempts</c>, <cy>best percent</c> and "
+      "<cy>where you died</c>.\nShow it after each level? You can change this in the mod settings.",
+      "No", "Yes",
+      [session](auto, bool yes)
+      {
+        Mod::get()->setSavedValue(SUMMARY_ASKED_KEY, true);
+
+        if (!yes)
+        {
+          Mod::get()->setSettingValue<bool>("session-summary", false);
+          return;
+        }
+
+        if (auto popup = SessionPopup::create(session))
+          popup->show();
+      });
+}
+
 // Shows the summary of the session just left on this level, once
 static void showSessionSummaryLater(CCNode *layer, GJGameLevel *level)
 {
@@ -62,8 +95,7 @@ static void showSessionSummaryLater(CCNode *layer, GJGameLevel *level)
           return;
 
         SessionStore::summaryPending() = false;
-        if (auto popup = SessionPopup::create(*last))
-          popup->show(); }),
+        askOnceThenShowSummary(*last); }),
       nullptr));
 }
 
