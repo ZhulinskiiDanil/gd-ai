@@ -147,6 +147,11 @@ matjson::Value api::context::collect()
       {"profiles", collectProfiles()},
   });
 
+  // Picked in the setup quiz or the settings, "Not set" is not sent
+  auto skill = Mod::get()->getSettingValue<std::string>("player-skill");
+  if (skill != "Not set")
+    context["skill"] = utils::string::toLower(skill);
+
   if (level)
   {
     context["level"] = matjson::makeObject({

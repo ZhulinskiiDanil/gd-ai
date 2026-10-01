@@ -7,16 +7,18 @@
 #include <Geode/modify/EditLevelLayer.hpp>
 #include <Geode/modify/EditorPauseLayer.hpp>
 
+#include "live/LiveTalk.hpp"
 #include "popups/ChatPopup/index.hpp"
 #include "popups/SessionPopup/index.hpp"
+#include "popups/SetupPopup/index.hpp"
 #include "store/SessionStore.hpp"
 
 using namespace geode::prelude;
 
 // Waits for the scene transition, a popup shown during it lands in the old scene
 static constexpr float SUMMARY_DELAY = .6f;
-// Set once the player answered if they want session summaries
-static constexpr auto SUMMARY_ASKED_KEY = "session-summary-asked";
+// Lets the main menu appear before the setup quiz
+static constexpr float SETUP_DELAY = .5f;
 
 static void openChat()
 {
@@ -52,7 +54,7 @@ static void addAskDashButton(CCNode *parent, char const *menuID, CircleBaseSize 
 static void askOnceThenShowSummary(LevelSession const &session)
 {
   auto mod = Mod::get();
-  if (mod->getSavedValue<bool>(SUMMARY_ASKED_KEY))
+  if (mod->getSavedValue<bool>(SESSION_SUMMARY_ASKED_KEY))
   {
     if (auto popup = SessionPopup::create(session))
       popup->show();
@@ -66,7 +68,7 @@ static void askOnceThenShowSummary(LevelSession const &session)
       "No", "Yes",
       [session](auto, bool yes)
       {
-        Mod::get()->setSavedValue(SUMMARY_ASKED_KEY, true);
+        Mod::get()->setSavedValue(SESSION_SUMMARY_ASKED_KEY, true);
 
         if (!yes)
         {
@@ -106,6 +108,12 @@ $on_game(Loaded)
     if (down && !repeat)
       openChat();
     return false; });
+
+  listenForKeybindSettingPresses("live-talk-keybind", [](Keybind const &, bool down, bool repeat, double)
+                                 {
+    if (down && !repeat)
+      live::toggle();
+    return false; });
 }
 
 class $modify(AskDashMenuLayer, MenuLayer)
@@ -116,9 +124,40 @@ class $modify(AskDashMenuLayer, MenuLayer)
       return false;
 
     addAskDashButton(this, "bottom-menu", CircleBaseSize::MediumAlt);
+    showSetupLater();
     return true;
   }
+
+  // The first time the main menu opens with the mod
+  void showSetupLater()
+  {
+    if (!SetupPopup::shouldShow())
+      return;
+
+    runAction(CCSequence::create(
+        CCDelayTime::create(SETUP_DELAY),
+        CallFuncExt::create([]
+                            {
+          auto scene = CCDirector::get()->getRunningScene();
+          if (!SetupPopup::shouldShow() || !scene || scene->getChildByType<SetupPopup>(0))
+            return;
+
+          if (auto popup = SetupPopup::create())
+            popup->show(); }),
+        nullptr));
+  }
 };
+
+static CCSprite *createLiveTalkSprite(bool active)
+{
+  auto spr = CircleButtonSprite::createWithSprite(
+      "logo.png"_spr, 1.f, active ? CircleBaseColor::Green : CircleBaseColor::Gray, CircleBaseSize::Small);
+
+  auto label = CCLabelBMFont::create("LIVE", "bigFont.fnt");
+  label->setScale(.3f);
+  spr->addChildAtPosition(label, Anchor::Bottom, {0.f, 4.f});
+  return spr;
+}
 
 class $modify(AskDashPauseLayer, PauseLayer)
 {
@@ -126,6 +165,33 @@ class $modify(AskDashPauseLayer, PauseLayer)
   {
     PauseLayer::customSetup();
     addAskDashButton(this, "right-button-menu", CircleBaseSize::Small);
+    addLiveTalkButton();
+  }
+
+  // Green while live talk is on. It also starts after the consent popup and stops by itself, so it is polled
+  void addLiveTalkButton()
+  {
+    auto menu = getChildByID("right-button-menu");
+    if (!menu)
+      return;
+
+    auto shown = std::make_shared<bool>(live::isActive());
+    auto btn = CCMenuItemExt::createSpriteExtra(createLiveTalkSprite(*shown), [](auto)
+                                                { live::toggle(); });
+    btn->setID("live-talk-button"_spr);
+
+    btn->runAction(CCRepeatForever::create(CCSequence::create(
+        CCDelayTime::create(.1f),
+        CallFuncExt::create([btn, shown]
+                            {
+          if (live::isActive() == *shown)
+            return;
+          *shown = !*shown;
+          btn->setSprite(createLiveTalkSprite(*shown)); }),
+        nullptr)));
+
+    menu->addChild(btn);
+    menu->updateLayout();
   }
 };
 

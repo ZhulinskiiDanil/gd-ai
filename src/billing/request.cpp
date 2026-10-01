@@ -45,6 +45,32 @@ static billing::ResponseFuture sendAs(
   co_return response;
 }
 
+arc::Future<Result<billing::Headers>> billing::authHeaders()
+{
+  if (!argon::signedIn())
+    co_return Err("Log in to your GD account to use AskDash");
+
+  auto account = argon::getGameAccountData();
+  if (!account.valid())
+    co_return Err("Log in to your GD account to use AskDash");
+
+  auto token = co_await argon::startAuth(account);
+  if (token.isErr())
+    co_return Err(fmt::format("GD login failed: {}", token.unwrapErr()));
+
+  co_return Ok(Headers{
+      {"X-Argon-Account", std::to_string(account.accountId)},
+      {"X-Argon-Token", token.unwrap()},
+      {"X-AskDash-Version", Mod::get()->getVersion().toVString()},
+  });
+}
+
+void billing::clearAuth()
+{
+  if (argon::signedIn())
+    argon::clearToken(argon::getGameAccountData());
+}
+
 billing::ResponseFuture billing::send(
     std::string method, std::string url, RequestFactory makeRequest)
 {

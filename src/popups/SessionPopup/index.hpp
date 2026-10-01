@@ -6,6 +6,9 @@
 
 using namespace geode::prelude;
 
+// Saved once the player answered if they want session summaries: on the first one or in the setup quiz
+inline constexpr auto SESSION_SUMMARY_ASKED_KEY = "session-summary-asked";
+
 // Shown after leaving a level: attempts, best percent and where you died the most
 class SessionPopup : public geode::Popup
 {

@@ -39,6 +39,53 @@
 			"default": "Ctrl+Shift+A",
 			"category": "universal"
 		},
+		"live-talk-keybind": {
+			"type": "keybind",
+			"name": "Live talk",
+			"description": "Starts or stops live talk while playing a level: AskDash listens to your microphone and talks back. <cy>Windows only</c>.",
+			"default": "Ctrl+Shift+L",
+			"category": "universal"
+		},
+		"live-talk-headphones": {
+			"type": "bool",
+			"name": "Live talk: I use headphones",
+			"description": "Lets you interrupt AskDash while it talks. Leave it off with speakers, or AskDash hears itself and stops.",
+			"default": false
+		},
+		"live-talk-language": {
+			"type": "string",
+			"name": "Live talk: language",
+			"description": "The language AskDash speaks in live talk. <cy>Auto</c> answers in the language you speak to it.",
+			"default": "Auto",
+			"one-of": ["Auto", "English", "Russian", "Ukrainian", "Spanish", "Portuguese", "German", "French", "Polish", "Turkish", "Indonesian", "Vietnamese"]
+		},
+		"live-talk-roast": {
+			"type": "string",
+			"name": "Live talk: roast level",
+			"description": "How hard AskDash roasts your fails. <cy>Gentle</c>: light teasing, <cy>Spicy</c>: friendly roasts, <cy>Savage</c>: no mercy. Only your gameplay is roasted, never you.",
+			"default": "Spicy",
+			"one-of": ["Gentle", "Spicy", "Savage"]
+		},
+		"live-talk-chattiness": {
+			"type": "string",
+			"name": "Live talk: chattiness",
+			"description": "How often AskDash speaks up on its own: on deaths, during good runs and when it's quiet. <cy>Quiet</c> only comments now and then, <cy>Chatty</c> almost never shuts up.",
+			"default": "Normal",
+			"one-of": ["Quiet", "Normal", "Chatty"]
+		},
+		"live-talk-subtitles": {
+			"type": "bool",
+			"name": "Live talk: subtitles",
+			"description": "Show what AskDash says at the bottom of the screen. Only replies in English can be shown, GD fonts have no other letters.",
+			"default": false
+		},
+		"player-skill": {
+			"type": "string",
+			"name": "Your skill",
+			"description": "How good you are at GD, so AskDash tunes its tips to you. Sent with the game context.",
+			"default": "Not set",
+			"one-of": ["Not set", "Beginner", "Intermediate", "Pro"]
+		},
 		"api-url": {
 			"type": "string",
 			"name": "API URL",
