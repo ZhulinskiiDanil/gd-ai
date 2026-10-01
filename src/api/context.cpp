@@ -145,6 +145,11 @@ matjson::Value api::context::collect()
       {"player", std::string(GameManager::get()->m_playerName)},
       {"stats", collectStats()},
       {"profiles", collectProfiles()},
+      // For code questions about Geode mods
+      {"versions", matjson::makeObject({
+                       {"geode", Loader::get()->getVersion().toVString()},
+                       {"gd", std::string(GEODE_GD_VERSION_STRING)},
+                   })},
   });
 
   // Picked in the setup quiz or the settings, "Not set" is not sent

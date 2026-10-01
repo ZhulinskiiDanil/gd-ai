@@ -74,7 +74,7 @@ AskDash needs you to be <cy>logged into your GD account</c>. It checks this with
 
 <cr>AskDash only works online.</c> When you press Send, the mod sends this to the AskDash server, which forwards it to OpenAI:
 - your chat messages (up to the last 20)
-- <cy>game context</c>: your player name, your skill if you picked it, your stats, your linked demon list usernames, your Death Tracker stats for the open level (if installed), your attempts and deaths on the open level this game session and your past sessions on it, what screen you are on, and the open level (name, ID, creator, difficulty, stars, length, song, your attempts and best percent)
+- <cy>game context</c>: your player name, your skill if you picked it, your stats, your linked demon list usernames, your Geode and GD versions, your Death Tracker stats for the open level (if installed), your attempts and deaths on the open level this game session and your past sessions on it, what screen you are on, and the open level (name, ID, creator, difficulty, stars, length, song, your attempts and best percent)
 
 The AskDash server also gets your GD <cy>account ID</c> and your Argon login token. It uses them to count your usage and find your plan, and doesn't pass them on to OpenAI. The server keeps your account ID, your GD name, how much of your limit you've used, and your plan key if you have one. It doesn't keep your chat messages.
 
