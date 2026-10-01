@@ -58,6 +58,12 @@
 			"description": "Keep the last 50 chat messages on your computer between game sessions. Turning it off deletes the saved history.",
 			"default": true
 		},
+		"level-chats": {
+			"type": "bool",
+			"name": "Chat per level",
+			"description": "Keep a separate chat for each level, opened when you ask from that level. The general chat is one button away.",
+			"default": true
+		},
 		"save-progress": {
 			"type": "bool",
 			"name": "Save level progress",

@@ -1,5 +1,6 @@
 # v1.6.0
 
+ * Each level has its own chat, opened when you ask from that level. The <cg>General</c> button switches to the usual chat (can be turned off in settings)
  * Your sessions on each level are saved on your computer. The session summary shows how you did last time, and the AI can tell if you are improving (can be turned off in settings)
 
 # v1.5.1
