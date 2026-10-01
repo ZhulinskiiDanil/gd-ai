@@ -2,9 +2,20 @@ name: Build Geode Mod
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build and release, e.g. v1.0.0 (empty: just build)"
+        required: false
+        default: ""
   push:
     branches:
       - "**"
+    tags:
+      - "v*"
+
+env:
+  # A release tag from a tag push or from the manual run, empty for plain builds
+  RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
 
 jobs:
   build:
@@ -35,6 +46,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.RELEASE_TAG || github.ref }}
 
       - name: Build the mod
         uses: geode-sdk/build-geode-mod@main
@@ -55,3 +68,34 @@ jobs:
         with:
           name: Build Output
           path: ${{ steps.build.outputs.build-output }}
+
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    needs: ['package']
+    if: ${{ github.ref_type == 'tag' || inputs.tag != '' }}
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: Build Output
+          path: build-output
+
+      # Release notes are the changelog section of this version
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Old tags released by hand must not take "Latest" from newer ones
+          LATEST: ${{ github.event_name == 'push' }}
+        run: |
+          awk -v ver="$RELEASE_TAG" '/^# /{p = ($2 == ver); next} p' changelog.md > notes.md
+          gh release create "$RELEASE_TAG" build-output/*.geode \
+            --title "AskDash $RELEASE_TAG" \
+            --notes-file notes.md \
+            --latest="$LATEST"

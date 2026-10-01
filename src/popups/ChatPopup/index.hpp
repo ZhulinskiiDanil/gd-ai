@@ -3,6 +3,7 @@
 #include <Geode/Geode.hpp>
 #include <Geode/utils/web.hpp>
 
+#include "../../billing/api.hpp"
 #include "../../store/ChatStore.hpp"
 
 using namespace geode::prelude;
@@ -10,11 +11,20 @@ using namespace geode::prelude;
 class ChatPopup : public geode::Popup
 {
 private:
+  enum class BubbleKind
+  {
+    Normal,
+    // Reply still being generated, plain text without buttons
+    Streaming,
+    // Failed request, with a Retry button
+    Error,
+  };
+
   ScrollLayer *m_scroll = nullptr;
   TextInput *m_input = nullptr;
   CCMenuItemSpriteExtra *m_sendBtn = nullptr;
   LoadingSpinner *m_spinner = nullptr;
-  CCLabelBMFont *m_emptyLabel = nullptr;
+  CCNode *m_emptyNode = nullptr;
 
   // Plan and usage left / "Free: 40% left today"
   CCLabelBMFont *m_statusLabel = nullptr;
@@ -23,7 +33,13 @@ private:
   async::TaskHolder<Result<web::WebResponse>> m_statusTask;
   bool m_sending = false;
 
-  bool init();
+  // ! --- Streamed reply --- !
+  std::string m_streamId;
+  std::string m_streamText;
+  size_t m_streamFrom = 0;
+  CCNode *m_streamBubble = nullptr;
+
+  bool init(std::string const &prompt);
 
   void onSend(CCObject *);
   void onClear(CCObject *);
@@ -31,14 +47,22 @@ private:
   void onSettings(CCObject *);
 
   void loadStatus();
+  void sendText(std::string const &text);
+
+  void requestReply();
+  void pollReply(float);
+  void failReply(billing::ApiError const &error);
+  void showStreamText();
 
   void setSending(bool sending);
 
   void rebuildMessages();
-  CCNode *createBubble(ChatMessage const &message, bool isError = false);
-  void addErrorBubble(std::string const &text);
+  CCNode *createBubble(ChatMessage const &message, BubbleKind kind = BubbleKind::Normal);
+  CCMenu *createActionsMenu(std::vector<ChatAction> const &actions);
+  CCNode *createEmptyState(CCSize const &listSize);
   void layoutMessages();
 
 public:
-  static ChatPopup *create();
+  // Sends `prompt` right away when it is not empty
+  static ChatPopup *create(std::string const &prompt = "");
 };

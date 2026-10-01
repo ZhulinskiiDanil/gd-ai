@@ -9,12 +9,39 @@ Ask anything about the game without alt-tabbing: level tips, demon list question
 The AskDash button is in:
 - the <cg>main menu</c> (bottom row)
 - the <cg>pause menu</c> while playing a level
-- the <cg>level page</c> of any level
+- the <cg>level page</c> of any level, including your own levels
+- the <cg>editor pause menu</c>
+
+Or press <cy>Ctrl+Shift+A</c> anywhere (change it in the mod settings). While playing, the level is paused first.
 
 ## What it knows
 
 - <cj>Up-to-date GD info</c> (<cy>Plus</c> and <cy>Pro</c>): the AI searches GD sites (the GD wiki, Pointercrate, the Demonlist, AREDL, GDBrowser, Geode docs and Reddit) for recent facts. On Free it answers from what it already knows, which can be out of date.
 - <cj>What you are doing right now</c>: if you ask about "this level", the AI knows which level is open and how you are doing on it.
+
+## What it can do
+
+Ask it to <cg>open</c> something and it answers with a button:
+- "Open Bloodbath" or "open level 10565740"
+- "Open the top 1 on demonlist.org" or "open #50 on Pointercrate"
+- "Show the most popular levels", trending, featured, awarded, hall of fame
+- "Show levels by Viprin" or "levels like this one"
+- "Find short easy demons with coins" (search with filters)
+- "Open the Beginner map pack", "open the Fire gauntlet", "search lists called top 50"
+- "What song is this?" (opens the song of the current level)
+- "Open Zoink's profile"
+
+Press the button to go there. If you are playing a level, AskDash asks before leaving it. In the editor, exit it first.
+
+It also knows your <cj>stats</c> (stars, moons, demons...) to suggest levels that fit you. Put your <cy>demonlist.org</c> or <cy>Pointercrate</c> name in the mod settings and ask "what is my rank?" or "what demon should I beat next?".
+
+Have <cy>Death Tracker</c> installed? AskDash reads its stats for the open level, so you can ask "where do I struggle?" or "what should I practice?". Levels from the editor are not supported yet.
+
+## Session summary
+
+After you leave a level (10+ attempts by default), AskDash shows how the session went: attempts, best percent and the percents where you died the most. Press <cg>Ask AskDash</c> to get tips on what to practice.
+
+Replies appear while they are being written. Use the copy button next to a reply to copy it, and <cg>Retry</c> when a request fails.
 
 ## Plans
 
@@ -30,16 +57,21 @@ AskDash needs you to be <cy>logged into your GD account</c>. It checks this with
 ## Privacy: what is sent
 
 <cr>AskDash only works online.</c> When you press Send, the mod sends this to the AskDash server, which forwards it to OpenAI:
-- your chat messages in the current session (up to the last 20)
-- <cy>game context</c>: your player name, what screen you are on, and the open level (name, ID, creator, difficulty, stars, length, your attempts and best percent)
+- your chat messages (up to the last 20)
+- <cy>game context</c>: your player name, your stats, your linked demon list usernames, your Death Tracker stats for the open level (if installed), your attempts and deaths on the open level this game session, what screen you are on, and the open level (name, ID, creator, difficulty, stars, length, song, your attempts and best percent)
 
 The AskDash server also gets your GD <cy>account ID</c> and your Argon login token. It uses them to count your usage and find your plan, and doesn't pass them on to OpenAI. The server keeps your account ID, your GD name, how much of your limit you've used, and your plan key if you have one. It doesn't keep your chat messages.
 
-You can turn off the game context in the <cy>mod settings</c> ("Send game context"). Your chat history is kept only in memory and is cleared when you close the game or press the trash button.
+You can turn off the game context in the <cy>mod settings</c> ("Send game context"). The last 50 chat messages are saved <cg>only on your computer</c> so they survive a restart; turn off "Save chat history" to keep them in memory only, or press the trash button to delete them.
 
 AskDash never sends your account password, save file or anything else from your game.
 
 ## Settings
 
+- **Open AskDash**: the keybind that opens the chat.
 - **API URL**: the AskDash server address. Only change it if you run your own server.
-- **Send game context**: share the current level and your progress with the AI (on by default).
+- **Send game context**: share the current level, your stats and progress with the AI (on by default).
+- **Save chat history**: keep the chat between game sessions (on by default).
+- **Session summary** / **Summary min attempts**: show the summary after leaving a level, and after how many attempts.
+- **Use Death Tracker**: send your Death Tracker stats for the open level (on by default, only works with Death Tracker installed).
+- **demonlist.org username** / **Pointercrate username**: link your demon list profiles.

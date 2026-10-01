@@ -8,7 +8,7 @@
 	},
 	"id": "zhulis.askdash",
 	"name": "AskDash",
-	"version": "v1.0.1",
+	"version": "v1.5.1",
 	"developer": "Zhulis",
 	"description": "AI assistant: ask anything about GD in-game",
 	"links": {
@@ -25,9 +25,20 @@
 		]
 	},
 	"dependencies": {
-		"geode.node-ids": ">=v1.23.3"
+		"geode.node-ids": ">=v1.23.3",
+		"elohmrow.death_tracker": {
+			"version": ">=v3.0.0",
+			"required": false
+		}
 	},
 	"settings": {
+		"open-keybind": {
+			"type": "keybind",
+			"name": "Open AskDash",
+			"description": "Opens the AskDash chat from any screen. While playing, the level is paused first.",
+			"default": "Ctrl+Shift+A",
+			"category": "universal"
+		},
 		"api-url": {
 			"type": "string",
 			"name": "API URL",
@@ -38,8 +49,48 @@
 		"send-game-context": {
 			"type": "bool",
 			"name": "Send game context",
-			"description": "Send your player name, current screen and the open level (name, ID, creator, difficulty, attempts, best percent) to the AI so it can answer questions about \"this level\".",
+			"description": "Send your player name, stats (stars, moons, demons...), linked demon list usernames, current screen and the open level (name, ID, creator, difficulty, song, attempts, best percent) to the AI so it can answer questions about \"this level\".",
 			"default": true
+		},
+		"save-history": {
+			"type": "bool",
+			"name": "Save chat history",
+			"description": "Keep the last 50 chat messages on your computer between game sessions. Turning it off deletes the saved history.",
+			"default": true
+		},
+		"session-summary": {
+			"type": "bool",
+			"name": "Session summary",
+			"description": "After leaving a level, show your attempts, best percent and where you died the most, with a button to ask the AI about it.",
+			"default": true
+		},
+		"session-min-attempts": {
+			"type": "int",
+			"name": "Summary min attempts",
+			"description": "Only show the session summary after at least this many attempts.",
+			"default": 10,
+			"min": 1,
+			"max": 1000
+		},
+		"use-death-tracker": {
+			"type": "bool",
+			"name": "Use Death Tracker",
+			"description": "If the <cy>Death Tracker</c> mod is installed, send your deaths on the open level (per percent, start pos runs, new bests) so the AI can see where you struggle. Needs \"Send game context\".",
+			"default": true
+		},
+		"demonlist-username": {
+			"type": "string",
+			"name": "demonlist.org username",
+			"description": "Your name on demonlist.org (Global Demonlist), so the AI can check your rank and completions.",
+			"default": "",
+			"filter": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+		},
+		"pointercrate-username": {
+			"type": "string",
+			"name": "Pointercrate username",
+			"description": "Your name on pointercrate.com, so the AI can check your rank and completions.",
+			"default": "",
+			"filter": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 		}
 	}
 }

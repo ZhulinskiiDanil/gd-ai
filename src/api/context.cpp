@@ -1,4 +1,6 @@
 #include "context.hpp"
+#include "../integrations/deathTracker.hpp"
+#include "../store/SessionStore.hpp"
 
 using namespace geode::prelude;
 
@@ -44,6 +46,74 @@ static std::string getLengthName(int length)
   }
 }
 
+static void addSong(matjson::Value &json, GJGameLevel *level)
+{
+  // Custom songs have an ID, official ones only an audio track
+  if (level->m_songID <= 0)
+  {
+    json["songName"] = std::string(LevelTools::getAudioTitle(level->m_audioTrack));
+    return;
+  }
+
+  json["songId"] = level->m_songID;
+
+  if (auto song = MusicDownloadManager::sharedState()->getSongInfoObject(level->m_songID))
+  {
+    json["songName"] = std::string(song->m_songName);
+    json["songArtist"] = std::string(song->m_artistName);
+  }
+}
+
+static matjson::Value collectStats()
+{
+  auto stats = GameStatsManager::sharedState();
+  auto stat = [stats](StatKey key)
+  { return stats->getStat(std::to_string(static_cast<int>(key)).c_str()); };
+
+  return matjson::makeObject({
+      {"stars", stat(StatKey::Stars)},
+      {"moons", stat(StatKey::Moons)},
+      {"diamonds", stat(StatKey::Diamonds)},
+      {"secretCoins", stat(StatKey::Coins)},
+      {"userCoins", stat(StatKey::UserCoins)},
+      {"demons", stat(StatKey::Demons)},
+      {"completedOnline", stat(StatKey::CustomLevels)},
+      {"attempts", stat(StatKey::Attempts)},
+      {"jumps", stat(StatKey::Jumps)},
+  });
+}
+
+static matjson::Value collectProfiles()
+{
+  auto profiles = matjson::makeObject({});
+
+  for (auto list : {"demonlist", "pointercrate"})
+  {
+    auto username = utils::string::trim(
+        Mod::get()->getSettingValue<std::string>(fmt::format("{}-username", list)));
+    if (!username.empty())
+      profiles[list] = username;
+  }
+
+  return profiles;
+}
+
+// The level being played, or the last time it was played this game session
+static std::optional<matjson::Value> collectSession(GJGameLevel *level)
+{
+  if (auto play = PlayLayer::get(); play && SessionStore::current())
+  {
+    auto session = *SessionStore::current();
+    session.attempts = play->m_attempts;
+    return SessionStore::toJson(session);
+  }
+
+  if (auto const &last = SessionStore::last(); last && last->isOf(level))
+    return SessionStore::toJson(*last);
+
+  return std::nullopt;
+}
+
 matjson::Value api::context::collect()
 {
   std::string scene = "menu";
@@ -66,11 +136,18 @@ matjson::Value api::context::collect()
       scene = "level-info";
       level = info->m_level;
     }
+    else if (auto edit = running->getChildByType<EditLevelLayer>(0))
+    {
+      scene = "level-edit";
+      level = edit->m_level;
+    }
   }
 
   auto context = matjson::makeObject({
       {"scene", scene},
       {"player", std::string(GameManager::get()->m_playerName)},
+      {"stats", collectStats()},
+      {"profiles", collectProfiles()},
   });
 
   if (level)
@@ -86,6 +163,13 @@ matjson::Value api::context::collect()
         {"bestPercent", level->m_normalPercent.value()},
         {"practicePercent", level->m_practicePercent},
     });
+    addSong(context["level"], level);
+
+    if (auto deaths = integrations::deathTracker::collect(level))
+      context["deathTracker"] = *deaths;
+
+    if (auto session = collectSession(level))
+      context["session"] = *session;
   }
 
   return context;

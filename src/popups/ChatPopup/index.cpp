@@ -1,8 +1,10 @@
 #include "index.hpp"
 
 #include "../../api/chat.hpp"
+#include "../../actions/navigate.hpp"
 #include "../PlansPopup/index.hpp"
 
+#include <regex>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/Label.hpp>
 
@@ -13,12 +15,29 @@ static constexpr float BUBBLE_PADDING = 6.f;
 static constexpr float BUBBLE_GAP = 5.f;
 static constexpr float TEXT_SCALE = .6f;
 static constexpr size_t MAX_INPUT_LENGTH = 500;
+static constexpr float ACTION_SCALE = .45f;
+static constexpr float ACTION_GAP = 4.f;
+static constexpr float COPY_SCALE = .45f;
+static constexpr float POLL_INTERVAL = .25f;
 
-ChatPopup *ChatPopup::create()
+static constexpr std::array QUICK_PROMPTS = {
+    "What is this level?",
+    "Open the #1 demon",
+    "Open the most popular levels",
+};
+
+// Color tags like <cy>...</c> are only for the game, not for the clipboard
+static std::string stripColorTags(std::string const &text)
+{
+  static std::regex const tags("</?c[a-z]?>");
+  return std::regex_replace(text, tags, "");
+}
+
+ChatPopup *ChatPopup::create(std::string const &prompt)
 {
   auto ret = new ChatPopup();
 
-  if (ret->init())
+  if (ret->init(prompt))
   {
     ret->autorelease();
     return ret;
@@ -28,7 +47,7 @@ ChatPopup *ChatPopup::create()
   return nullptr;
 }
 
-bool ChatPopup::init()
+bool ChatPopup::init(std::string const &prompt)
 {
   if (!Popup::init(POPUP_WIDTH, POPUP_HEIGHT))
     return false;
@@ -118,40 +137,54 @@ bool ChatPopup::init()
   m_scroll->setPosition({PADDING, listBottom});
   m_mainLayer->addChild(m_scroll);
 
-  m_emptyLabel = CCLabelBMFont::create("Ask me anything about Geometry Dash!", "bigFont.fnt");
-  m_emptyLabel->setScale(.35f);
-  m_emptyLabel->setOpacity(120);
-  m_emptyLabel->setPosition({PADDING + listSize.width / 2, listBottom + listSize.height / 2});
-  m_mainLayer->addChild(m_emptyLabel);
+  m_emptyNode = createEmptyState(listSize);
+  m_emptyNode->setPosition({PADDING + listSize.width / 2, listBottom + listSize.height / 2});
+  m_mainLayer->addChild(m_emptyNode);
 
   rebuildMessages();
   loadStatus();
 
+  if (!prompt.empty())
+    sendText(prompt);
+
   return true;
 }
 
-CCNode *ChatPopup::createBubble(ChatMessage const &message, bool isError)
+CCNode *ChatPopup::createBubble(ChatMessage const &message, BubbleKind kind)
 {
   bool isUser = message.role == "user";
+  bool isRich = !isUser && kind == BubbleKind::Normal;
   float listWidth = m_scroll->getContentWidth();
   float maxTextWidth = listWidth * .75f;
 
-  auto text = isUser || isError
-                  ? geode::Label::create(message.content, "chatFont.fnt")
-                  : geode::Label::createRich(message.content, "chatFont.fnt");
+  // Streamed text can end inside a color tag, so it stays plain until done
+  auto content = message.content.empty() ? std::string("...") : message.content;
+  auto text = isRich
+                  ? geode::Label::createRich(content, "chatFont.fnt")
+                  : geode::Label::create(content, "chatFont.fnt");
   text->setScale(TEXT_SCALE);
   text->setMaxWidth(maxTextWidth / TEXT_SCALE);
   text->setBreakWords(true);
   // isUser ? geode::Label::Alignment::Left : geode::Label::Alignment::Right (::Right doesn't work idk why)
   text->setAlignment(geode::Label::Alignment::Left);
 
-  if (isError)
+  if (kind == BubbleKind::Error)
     text->setColor({255, 110, 110});
 
+  // ! --- Buttons row under the text --- !
+  CCMenu *footer = nullptr;
+
+  if (kind == BubbleKind::Error)
+    footer = createActionsMenu({{"retry", "Retry"}});
+  else if (isRich && !message.actions.empty())
+    footer = createActionsMenu(message.actions);
+
   auto textSize = text->getScaledContentSize();
+  float footerHeight = footer ? footer->getContentHeight() + BUBBLE_PADDING : 0.f;
+
   CCSize bubbleSize = {
-      textSize.width + BUBBLE_PADDING * 2,
-      textSize.height + BUBBLE_PADDING * 2,
+      std::max(textSize.width, footer ? footer->getContentWidth() : 0.f) + BUBBLE_PADDING * 2,
+      textSize.height + footerHeight + BUBBLE_PADDING * 2,
   };
 
   auto bubble = CCNode::create();
@@ -160,37 +193,126 @@ CCNode *ChatPopup::createBubble(ChatMessage const &message, bool isError)
   auto bg = CCScale9Sprite::create("square02_small.png");
   bg->setContentSize(bubbleSize);
   bg->setOpacity(isUser ? 110 : 60);
-
   if (isUser)
     bg->setColor({80, 160, 255});
 
   float bgX = isUser ? listWidth - BUBBLE_PADDING - bubbleSize.width / 2
                      : BUBBLE_PADDING + bubbleSize.width / 2;
-
   bg->setPosition({bgX, bubbleSize.height / 2});
   bubble->addChild(bg);
 
-  text->setAnchorPoint({.5f, .5f});
-  text->setPosition(bg->getPosition());
+  float left = bgX - bubbleSize.width / 2 + BUBBLE_PADDING;
+
+  text->setAnchorPoint({0.f, 1.f});
+  text->setPosition({left, bubbleSize.height - BUBBLE_PADDING});
   bubble->addChild(text);
 
+  if (footer)
+  {
+    footer->setPosition({left, BUBBLE_PADDING});
+    bubble->addChild(footer);
+  }
+
+  // ! --- Copy button next to the reply --- !
+  if (isRich)
+  {
+    auto copySpr = CCSprite::createWithSpriteFrameName("GJ_copyBtn_001.png");
+    copySpr->setScale(COPY_SCALE);
+
+    auto copyBtn = CCMenuItemExt::createSpriteExtra(copySpr, [text = message.content](auto)
+                                                    {
+      utils::clipboard::write(stripColorTags(text));
+      Notification::create("Copied", NotificationIcon::Success)->show(); });
+
+    auto copyMenu = CCMenu::create();
+    copyMenu->setPosition({0.f, 0.f});
+    copyBtn->setPosition({
+        bgX + bubbleSize.width / 2 + copySpr->getScaledContentWidth() / 2 + 4.f,
+        bubbleSize.height - copySpr->getScaledContentHeight() / 2,
+    });
+    copyMenu->addChild(copyBtn);
+    bubble->addChild(copyMenu);
+  }
+
   return bubble;
+}
+
+CCMenu *ChatPopup::createActionsMenu(std::vector<ChatAction> const &actions)
+{
+  auto menu = CCMenu::create();
+  menu->ignoreAnchorPointForPosition(false);
+  menu->setAnchorPoint({0.f, 0.f});
+
+  float x = 0.f;
+  float height = 0.f;
+
+  for (auto const &action : actions)
+  {
+    auto spr = ButtonSprite::create(action.label.c_str(), "goldFont.fnt", "GJ_button_01.png", .8f);
+    spr->setScale(ACTION_SCALE);
+
+    auto btn = CCMenuItemExt::createSpriteExtra(spr, [this, action](auto)
+                                                {
+      if (action.type == "retry")
+      {
+        if (!m_sending)
+          requestReply();
+        return;
+      }
+
+      // The popup is gone after onClose, keep only the copied action
+      onClose(nullptr);
+      actions::run(action); });
+
+    auto size = spr->getScaledContentSize();
+    btn->setPosition({x + size.width / 2, size.height / 2});
+    menu->addChild(btn);
+
+    x += size.width + ACTION_GAP;
+    height = std::max(height, size.height);
+  }
+
+  menu->setContentSize({x - ACTION_GAP, height});
+  return menu;
+}
+
+CCNode *ChatPopup::createEmptyState(CCSize const &listSize)
+{
+  auto node = CCNode::create();
+
+  auto label = CCLabelBMFont::create("Ask me anything about Geometry Dash!", "bigFont.fnt");
+  label->setScale(.35f);
+  label->setOpacity(120);
+  label->setPositionY(listSize.height / 4);
+  node->addChild(label);
+
+  auto menu = CCMenu::create();
+  menu->setPosition({0.f, -listSize.height / 8});
+  menu->setContentSize({listSize.width, 30.f});
+  menu->setLayout(RowLayout::create()->setGap(6.f));
+
+  for (auto prompt : QUICK_PROMPTS)
+  {
+    auto spr = ButtonSprite::create(prompt, "bigFont.fnt", "GJ_button_04.png", .8f);
+    spr->setScale(.4f);
+
+    menu->addChild(CCMenuItemExt::createSpriteExtra(spr, [this, prompt](auto)
+                                                    { sendText(prompt); }));
+  }
+
+  menu->updateLayout();
+  node->addChild(menu);
+
+  return node;
 }
 
 void ChatPopup::rebuildMessages()
 {
   m_scroll->m_contentLayer->removeAllChildren();
+  m_streamBubble = nullptr;
 
   for (auto const &message : ChatStore::messages())
     m_scroll->m_contentLayer->addChild(createBubble(message));
-
-  layoutMessages();
-}
-
-void ChatPopup::addErrorBubble(std::string const &text)
-{
-  m_scroll->m_contentLayer->addChild(
-      createBubble({"assistant", text}, true));
 
   layoutMessages();
 }
@@ -201,7 +323,6 @@ void ChatPopup::layoutMessages()
   auto children = CCArrayExt<CCNode *>(content->getChildren());
 
   float totalHeight = BUBBLE_GAP;
-
   for (auto child : children)
     totalHeight += child->getContentHeight() + BUBBLE_GAP;
 
@@ -209,7 +330,6 @@ void ChatPopup::layoutMessages()
   content->setContentSize({m_scroll->getContentWidth(), height});
 
   float y = height - BUBBLE_GAP;
-
   for (auto child : children)
   {
     y -= child->getContentHeight();
@@ -219,7 +339,7 @@ void ChatPopup::layoutMessages()
 
   content->setPositionY(0.f);
 
-  m_emptyLabel->setVisible(children.size() == 0);
+  m_emptyNode->setVisible(children.size() == 0);
 }
 
 void ChatPopup::setSending(bool sending)
@@ -232,57 +352,123 @@ void ChatPopup::setSending(bool sending)
 
 void ChatPopup::onSend(CCObject *)
 {
-  if (m_sending)
-    return;
-
   auto text = utils::string::trim(m_input->getString());
-
-  if (text.empty())
+  if (text.empty() || m_sending)
     return;
 
   m_input->setString("");
   m_input->defocus();
 
-  ChatStore::messages().push_back({"user", text});
+  sendText(text);
+}
 
-  rebuildMessages();
+void ChatPopup::sendText(std::string const &text)
+{
+  if (m_sending)
+    return;
+
+  ChatStore::messages().push_back({"user", text});
+  ChatStore::save();
+  requestReply();
+}
+
+// ! --- Streamed reply --- !
+
+// Asks for a reply to the history, whose last message is from the user
+void ChatPopup::requestReply()
+{
   setSending(true);
+  rebuildMessages();
+
+  m_streamText.clear();
+  m_streamFrom = 0;
+  showStreamText();
 
   m_task.spawn(
-      api::chat::sendMessages(ChatStore::messages()),
+      api::chat::startStream(ChatStore::messages()),
       [this](Result<web::WebResponse> response)
       {
-        setSending(false);
-
-        auto result = api::chat::parseReply(response);
-
-        if (result.isErr())
+        auto id = api::chat::parseStreamId(response);
+        if (id.isErr())
         {
-          auto const &error = result.unwrapErr();
-
-          log::error("Chat request failed: {}", error.message);
-          addErrorBubble(error.message);
-
-          if (error.upgrade)
-            onPlans(nullptr);
-
+          failReply(id.unwrapErr());
           return;
         }
 
-        ChatStore::messages().push_back({"assistant", result.unwrap()});
-
-        rebuildMessages();
-        loadStatus();
+        m_streamId = id.unwrap();
+        pollReply(0.f);
       });
+}
+
+void ChatPopup::pollReply(float)
+{
+  m_task.spawn(
+      api::chat::pollStream(m_streamId, m_streamFrom),
+      [this](Result<web::WebResponse> response)
+      {
+        auto result = api::chat::parseStreamChunk(response);
+        if (result.isErr())
+        {
+          failReply(result.unwrapErr());
+          return;
+        }
+
+        auto chunk = std::move(result).unwrap();
+        m_streamFrom = chunk.next;
+
+        if (chunk.reply)
+        {
+          ChatStore::messages().push_back(std::move(*chunk.reply));
+          ChatStore::save();
+          setSending(false);
+          rebuildMessages();
+          loadStatus();
+          return;
+        }
+
+        if (!chunk.delta.empty())
+        {
+          m_streamText += chunk.delta;
+          showStreamText();
+        }
+
+        scheduleOnce(schedule_selector(ChatPopup::pollReply), POLL_INTERVAL);
+      });
+}
+
+void ChatPopup::failReply(billing::ApiError const &error)
+{
+  log::error("Chat request failed: {}", error.message);
+
+  setSending(false);
+  rebuildMessages();
+
+  m_scroll->m_contentLayer->addChild(
+      createBubble({"assistant", error.message}, BubbleKind::Error));
+  layoutMessages();
+
+  if (error.upgrade)
+    onPlans(nullptr);
+}
+
+// Replaces the reply bubble at the bottom with the text streamed so far
+void ChatPopup::showStreamText()
+{
+  if (m_streamBubble)
+    m_streamBubble->removeFromParent();
+
+  m_streamBubble = createBubble({"assistant", m_streamText}, BubbleKind::Streaming);
+  m_scroll->m_contentLayer->addChild(m_streamBubble);
+  layoutMessages();
 }
 
 void ChatPopup::onClear(CCObject *)
 {
   m_task.cancel();
-
+  unschedule(schedule_selector(ChatPopup::pollReply));
   setSending(false);
   ChatStore::messages().clear();
-
+  ChatStore::save();
   rebuildMessages();
 }
 
@@ -291,7 +477,7 @@ void ChatPopup::loadStatus()
   m_statusTask.spawn(billing::fetchStatus(), [this](Result<web::WebResponse> response)
                      {
     auto status = billing::parseStatus(response);
-    
+
     if (status.isErr())
     {
       log::warn("Plan status failed: {}", status.unwrapErr().message);
