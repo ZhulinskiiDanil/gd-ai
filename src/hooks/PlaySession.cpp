@@ -26,7 +26,7 @@ static constexpr int PRANK_SAFE_PERCENT = 10;
 
 // Plain ASCII: GD fonts have no other letters
 static constexpr char const *PRANK_LABELS[] = {
-    "Attempt {} (vegetable)",
+    "Attempt {} (warm-up, apparently)",
     "Attempt {}. Again. Why",
     "Attempt {}, still no skill",
     "Attempt {} of infinity",
@@ -34,7 +34,7 @@ static constexpr char const *PRANK_LABELS[] = {
 };
 
 static constexpr char const *PRANK_NOTIFICATIONS[] = {
-    "Achievement unlocked: Certified Vegetable",
+    "Achievement unlocked: Professional Retry Clicker",
     "AskDash reported you for crimes against this level",
     "Tip: try not dying",
     "Your best percent filed a missing person report",
