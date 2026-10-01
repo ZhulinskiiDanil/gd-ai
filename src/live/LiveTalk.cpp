@@ -65,6 +65,13 @@ bool live::isActive()
   return session().state != State::Off;
 }
 
+bool live::pranksAllowed()
+{
+  auto mod = Mod::get();
+  return isActive() && mod->getSettingValue<bool>("live-talk-pranks") &&
+         mod->getSettingValue<std::string>("live-talk-roast") == "Savage";
+}
+
 live::State live::state()
 {
   auto &s = session();

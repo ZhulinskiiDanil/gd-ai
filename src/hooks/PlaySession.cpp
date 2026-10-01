@@ -7,8 +7,59 @@
 #include "../store/SessionStore.hpp"
 
 #include <ctime>
+#include <random>
 
 using namespace geode::prelude;
+
+// ! --- Savage pranks: very rare, only with live talk on Savage (live::pranksAllowed) --- !
+
+// Chances per attempt (timed pranks, label) and per death (notification)
+static constexpr int PAUSE_PRANK_ONE_IN = 750;
+static constexpr int SOUND_PRANK_ONE_IN = 400;
+static constexpr int LABEL_PRANK_ONE_IN = 150;
+static constexpr int NOTIFICATION_PRANK_ONE_IN = 200;
+// Run time when a timed prank fires
+static constexpr float PRANK_MIN_SECONDS = 2.f;
+static constexpr float PRANK_MAX_SECONDS = 8.f;
+// A run this close to the best (or past it) is never pranked
+static constexpr int PRANK_SAFE_PERCENT = 10;
+
+// Plain ASCII: GD fonts have no other letters
+static constexpr char const *PRANK_LABELS[] = {
+    "Attempt {} (vegetable)",
+    "Attempt {}. Again. Why",
+    "Attempt {}, still no skill",
+    "Attempt {} of infinity",
+    "Attempt {}: same mistake, new attempt",
+};
+
+static constexpr char const *PRANK_NOTIFICATIONS[] = {
+    "Achievement unlocked: Certified Vegetable",
+    "AskDash reported you for crimes against this level",
+    "Tip: try not dying",
+    "Your best percent filed a missing person report",
+    "Your clicks have been flagged as random",
+    "Achievement unlocked: Died There Again",
+    "RobTop has been notified about this attempt",
+    "Practice mode called, it misses you",
+};
+
+static std::mt19937 &prankRandom()
+{
+  static std::mt19937 s_random{std::random_device{}()};
+  return s_random;
+}
+
+static bool chance(int oneIn)
+{
+  return std::uniform_int_distribution<int>(1, oneIn)(prankRandom()) == 1;
+}
+
+template <size_t N>
+static char const *pickOne(char const *const (&items)[N])
+{
+  return items[std::uniform_int_distribution<size_t>(0, N - 1)(prankRandom())];
+}
 
 // Counts attempts and deaths for the session summary, tells live talk what happens
 class $modify(AskDashPlayLayer, PlayLayer)
@@ -23,6 +74,9 @@ class $modify(AskDashPlayLayer, PlayLayer)
     float runSeconds = 0.f;
     int milestonesSent = 0;
     bool pauseSent = false;
+    // Run time of this attempt's timed prank, -1 for none, and if it is the pause (else the death sound)
+    float prankAt = -1.f;
+    bool prankPause = false;
   };
 
   // Live talk doesn't comment tiny bests like 3%
@@ -61,6 +115,48 @@ class $modify(AskDashPlayLayer, PlayLayer)
     m_fields->attemptStart = getCurrentPercentInt();
     m_fields->runSeconds = 0.f;
     m_fields->milestonesSent = 0;
+    m_fields->prankAt = -1.f;
+
+    if (live::pranksAllowed())
+      rollPranks();
+  }
+
+  void rollPranks()
+  {
+    auto fields = m_fields.self();
+
+    bool pause = chance(PAUSE_PRANK_ONE_IN);
+    if (pause || chance(SOUND_PRANK_ONE_IN))
+    {
+      fields->prankPause = pause;
+      fields->prankAt = std::uniform_real_distribution<float>(PRANK_MIN_SECONDS, PRANK_MAX_SECONDS)(prankRandom());
+    }
+
+    // GD writes the label in resetLevel, this one stays for the attempt
+    if (m_attemptLabel && chance(LABEL_PRANK_ONE_IN))
+      m_attemptLabel->setString(fmt::format(fmt::runtime(pickOne(PRANK_LABELS)), m_attempts).c_str());
+  }
+
+  void playPrank(int percent)
+  {
+    auto fields = m_fields.self();
+    fields->prankAt = -1.f;
+
+    // Not worth a run that could beat the best
+    if (isFromZero() && fields->levelBest >= 20 && percent >= fields->levelBest - PRANK_SAFE_PERCENT)
+      return;
+    if (!live::pranksAllowed())
+      return;
+
+    if (fields->prankPause)
+    {
+      pauseGame(false);
+      live::sendEvent(matjson::makeObject({{"kind", "prank"}, {"action", "pause"}}));
+      return;
+    }
+
+    FMODAudioEngine::get()->playEffect("explode_11.ogg");
+    live::sendEvent(matjson::makeObject({{"kind", "prank"}, {"action", "death-sound"}}));
   }
 
   // Only attempts from 0% outside practice count for deaths and the best percent
@@ -91,6 +187,10 @@ class $modify(AskDashPlayLayer, PlayLayer)
       session->runs[{m_fields->attemptStart, percent}]++;
 
     // ! --- Live talk --- !
+    m_fields->prankAt = -1.f;
+    if (live::pranksAllowed() && chance(NOTIFICATION_PRANK_ONE_IN))
+      Notification::create(pickOne(PRANK_NOTIFICATIONS), NotificationIcon::Info)->show();
+
     bool newBest = isFromZero() && percent > m_fields->levelBest;
     if (newBest)
       m_fields->levelBest = percent;
@@ -137,6 +237,9 @@ class $modify(AskDashPlayLayer, PlayLayer)
 
     fields->runSeconds += dt;
     int percent = getCurrentPercentInt();
+
+    if (fields->prankAt >= 0.f && fields->runSeconds >= fields->prankAt)
+      playPrank(percent);
     int best = fields->levelBest;
     int start = fields->attemptStart;
     bool fromZero = isFromZero();

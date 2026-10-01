@@ -80,6 +80,12 @@
 			"default": "Default",
 			"one-of": ["Default", "Marin", "Cedar", "Alloy", "Ash", "Ballad", "Coral", "Echo", "Sage", "Shimmer", "Verse"]
 		},
+		"live-talk-pranks": {
+			"type": "bool",
+			"name": "Live talk: Savage pranks",
+			"description": "Only with <cy>Savage</c> roasts: very rarely AskDash pauses your game, fakes a death sound, renames your attempt or sends a fake notification. Never close to your best.",
+			"default": true
+		},
 		"live-talk-subtitles": {
 			"type": "bool",
 			"name": "Live talk: subtitles",
