@@ -1,6 +1,8 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 
+#include "../live/LiveOverlay.hpp"
+#include "../live/LiveTalk.hpp"
 #include "../store/ProgressStore.hpp"
 #include "../store/SessionStore.hpp"
 
@@ -8,14 +10,19 @@
 
 using namespace geode::prelude;
 
-// Counts attempts and deaths for the session summary
+// Counts attempts and deaths for the session summary, tells live talk what happens
 class $modify(AskDashPlayLayer, PlayLayer)
 {
   struct Fields
   {
     // Where the current attempt started: a start pos, a practice checkpoint or 0
     int attemptStart = 0;
+    // Best percent from 0 before this attempt, GD updates the level's own while the player dies
+    int levelBest = 0;
   };
+
+  // Live talk doesn't comment tiny bests like 3%
+  static constexpr int MIN_BEST_TO_TELL = 10;
 
   bool init(GJGameLevel *level, bool useReplay, bool dontCreateObjects)
   {
@@ -27,6 +34,9 @@ class $modify(AskDashPlayLayer, PlayLayer)
         .levelName = std::string(level->m_levelName),
         .startedAt = std::time(nullptr),
     };
+    m_fields->levelBest = level->m_normalPercent.value();
+
+    m_uiLayer->addChild(LiveOverlay::create(), 100);
     return true;
   }
 
@@ -62,11 +72,36 @@ class $modify(AskDashPlayLayer, PlayLayer)
     }
     else
       session->runs[{m_fields->attemptStart, percent}]++;
+
+    // ! --- Live talk --- !
+    if (!live::isActive())
+      return;
+
+    if (isFromZero() && percent > m_fields->levelBest && percent >= MIN_BEST_TO_TELL)
+    {
+      m_fields->levelBest = percent;
+      live::sendEvent(matjson::makeObject({{"kind", "best"}, {"percent", percent}, {"attempt", m_attempts}}));
+      return;
+    }
+
+    live::sendEvent(matjson::makeObject({
+        {"kind", "death"},
+        {"percent", percent},
+        {"attempt", m_attempts},
+        {"from", m_fields->attemptStart},
+        {"practice", static_cast<bool>(m_isPracticeMode)},
+    }));
   }
 
   void levelComplete()
   {
     PlayLayer::levelComplete();
+
+    live::sendEvent(matjson::makeObject({
+        {"kind", "complete"},
+        {"attempts", m_attempts},
+        {"practice", static_cast<bool>(m_isPracticeMode)},
+    }));
 
     auto &session = SessionStore::current();
     if (!session)
@@ -80,6 +115,8 @@ class $modify(AskDashPlayLayer, PlayLayer)
 
   void onQuit()
   {
+    live::stop();
+
     if (auto &session = SessionStore::current())
     {
       session->attempts = m_attempts;

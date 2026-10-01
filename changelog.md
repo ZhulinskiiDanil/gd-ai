@@ -1,3 +1,7 @@
+# v1.7.0
+
+ * <cy>Live talk</c> (Windows): talk with AskDash by voice while you play. It listens to your microphone, answers out loud, roasts your deaths and hypes your new bests. Press <cy>Ctrl+Shift+L</c> in a level or the <cg>LIVE</c> button in the pause menu
+
 # v1.6.1
 
  * New session summary: stat cards, a chart of where you died over the level and how you did compared to last time

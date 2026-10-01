@@ -39,6 +39,19 @@
 			"default": "Ctrl+Shift+A",
 			"category": "universal"
 		},
+		"live-talk-keybind": {
+			"type": "keybind",
+			"name": "Live talk",
+			"description": "Starts or stops live talk while playing a level: AskDash listens to your microphone and talks back. <cy>Windows only</c>.",
+			"default": "Ctrl+Shift+L",
+			"category": "universal"
+		},
+		"live-talk-headphones": {
+			"type": "bool",
+			"name": "Live talk: I use headphones",
+			"description": "Lets you interrupt AskDash while it talks. Leave it off with speakers, or AskDash hears itself and stops.",
+			"default": false
+		},
 		"api-url": {
 			"type": "string",
 			"name": "API URL",

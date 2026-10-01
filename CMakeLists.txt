@@ -25,3 +25,8 @@ setup_geode_mod(${PROJECT_NAME})
 
 CPMAddPackage("gh:GlobedGD/argon@1.5.1")
 target_link_libraries(${PROJECT_NAME} argon)
+
+# Live talk: WebSocket and microphone/speaker, Windows only
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} winhttp winmm)
+endif()

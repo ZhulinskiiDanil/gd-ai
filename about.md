@@ -37,6 +37,14 @@ It also knows your <cj>stats</c> (stars, moons, demons...) to suggest levels tha
 
 Have <cy>Death Tracker</c> installed? AskDash reads its stats for the open level, so you can ask "where do I struggle?" or "what should I practice?". Levels from the editor are not supported yet.
 
+## Live talk (Windows)
+
+Talk with AskDash <cy>by voice while you play</c>. Press <cy>Ctrl+Shift+L</c> in a level (or the <cg>LIVE</c> button in the pause menu): AskDash listens to your microphone, answers out loud and reacts to your deaths and new bests. Expect jokes at your expense: it is here to have fun with you, and really easy questions may get a joke instead of an answer until you insist.
+
+Use <cg>headphones</c> if you can. With speakers AskDash doesn't listen while it talks, so it doesn't hear itself. Its replies show as subtitles when they are in English.
+
+Live talk is only available on <cy>Windows</c> for now. It has its own daily limit on Free, paid plans use their normal limit.
+
 ## Session summary
 
 After you leave a level (10+ attempts by default), AskDash shows how the session went: attempts, best percent, a chart of where you died and how it compares with last time. Press <cg>Ask AskDash</c> to get tips on what to practice.
@@ -72,11 +80,15 @@ The AskDash server also gets your GD <cy>account ID</c> and your Argon login tok
 
 You can turn off the game context in the <cy>mod settings</c> ("Send game context"). The last 50 messages of each chat are saved <cg>only on your computer</c> so they survive a restart; turn off "Save chat history" to keep them in memory only, or press the trash button to delete a chat. Your past sessions on levels are also saved only on your computer; turn off "Save level progress" to delete them.
 
+<cy>Live talk</c> (only while it is on): your microphone audio and the same game context, plus your deaths and new bests as they happen, go to the AskDash server and OpenAI. The audio isn't saved. AskDash asks before the first time.
+
 AskDash never sends your account password, save file or anything else from your game.
 
 ## Settings
 
 - **Open AskDash**: the keybind that opens the chat.
+- **Live talk**: the keybind that starts or stops live talk in a level (Windows only).
+- **Live talk: I use headphones**: lets you interrupt AskDash while it talks. Leave it off with speakers.
 - **API URL**: the AskDash server address. Only change it if you run your own server.
 - **Send game context**: share the current level, your stats and progress with the AI (on by default).
 - **Save chat history**: keep the chats between game sessions (on by default).

@@ -7,6 +7,7 @@
 #include <Geode/modify/EditLevelLayer.hpp>
 #include <Geode/modify/EditorPauseLayer.hpp>
 
+#include "live/LiveTalk.hpp"
 #include "popups/ChatPopup/index.hpp"
 #include "popups/SessionPopup/index.hpp"
 #include "store/SessionStore.hpp"
@@ -106,6 +107,12 @@ $on_game(Loaded)
     if (down && !repeat)
       openChat();
     return false; });
+
+  listenForKeybindSettingPresses("live-talk-keybind", [](Keybind const &, bool down, bool repeat, double)
+                                 {
+    if (down && !repeat)
+      live::toggle();
+    return false; });
 }
 
 class $modify(AskDashMenuLayer, MenuLayer)
@@ -126,6 +133,29 @@ class $modify(AskDashPauseLayer, PauseLayer)
   {
     PauseLayer::customSetup();
     addAskDashButton(this, "right-button-menu", CircleBaseSize::Small);
+    addLiveTalkButton();
+  }
+
+  // Green while live talk is on
+  void addLiveTalkButton()
+  {
+    auto menu = getChildByID("right-button-menu");
+    if (!menu)
+      return;
+
+    auto spr = CircleButtonSprite::createWithSprite(
+        "logo.png"_spr, 1.f, live::isActive() ? CircleBaseColor::Green : CircleBaseColor::Gray, CircleBaseSize::Small);
+
+    auto label = CCLabelBMFont::create("LIVE", "bigFont.fnt");
+    label->setScale(.3f);
+    spr->addChildAtPosition(label, Anchor::Bottom, {0.f, 4.f});
+
+    auto btn = CCMenuItemExt::createSpriteExtra(spr, [](auto)
+                                                { live::toggle(); });
+    btn->setID("live-talk-button"_spr);
+
+    menu->addChild(btn);
+    menu->updateLayout();
   }
 };
 
