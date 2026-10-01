@@ -39,7 +39,9 @@ Have <cy>Death Tracker</c> installed? AskDash reads its stats for the open level
 
 ## Session summary
 
-After you leave a level (10+ attempts by default), AskDash shows how the session went: attempts, best percent and the percents where you died the most. Press <cg>Ask AskDash</c> to get tips on what to practice.
+After you leave a level (10+ attempts by default), AskDash shows how the session went: attempts, best percent, a chart of where you died and how it compares with last time. Press <cg>Ask AskDash</c> to get tips on what to practice.
+
+The first time, AskDash asks if you want these summaries at all. Changed your mind? Tick <cy>Don't show again</c> in the summary, or use the "Session summary" setting.
 
 It also remembers your past sessions on each level, so it shows how you did last time and the AI can tell if you are improving.
 

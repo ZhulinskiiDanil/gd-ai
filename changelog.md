@@ -1,3 +1,8 @@
+# v1.6.1
+
+ * New session summary: stat cards, a chart of where you died over the level and how you did compared to last time
+ * The first summary asks if you want them at all, and each summary has a <cy>Don't show again</c> box
+
 # v1.6.0
 
  * Each level has its own chat, opened when you ask from that level. The <cg>General</c> button switches to the usual chat (can be turned off in settings)
