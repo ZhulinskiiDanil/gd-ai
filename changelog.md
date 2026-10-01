@@ -1,9 +1,8 @@
 # v1.7.0
 
- * <cy>Live talk</c> (Windows): talk with AskDash by voice while you play. It listens to your microphone, answers out loud, roasts your deaths and hypes your new bests. Press <cy>Ctrl+Shift+L</c> in a level or the <cg>LIVE</c> button in the pause menu
- * Live talk speaks your language: pick it in the settings, or leave <cy>Auto</c> to answer in the language you speak. You can also pick how hard it roasts you
- * A short setup quiz on the first launch: your skill, live talk language, roast level, headphones and session summaries
- * Subtitles in live talk are off by default, turn them on in the settings
+ * <cy>Live talk</c> (Windows): talk with AskDash by voice while you play. It listens to your microphone, answers out loud, roasts your deaths (walls, chokes near your best, thrown long runs), hypes you mid-run when you pass your best and breaks the silence now and then. Press <cy>Ctrl+Shift+L</c> in a level or the <cg>LIVE</c> button in the pause menu
+ * Live talk settings: the language AskDash speaks (<cy>Auto</c> answers in the language you speak), how hard it roasts you, how chatty it is, headphones (to interrupt it by talking) and subtitles (off by default)
+ * A short setup quiz on the first launch: your skill, live talk language, roast level, chattiness, headphones and session summaries
 
 # v1.6.1
 

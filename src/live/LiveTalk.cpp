@@ -238,6 +238,8 @@ static void start()
       {"prefs", matjson::makeObject({
                     {"language", mod->getSettingValue<std::string>("live-talk-language")},
                     {"roast", utils::string::toLower(mod->getSettingValue<std::string>("live-talk-roast"))},
+                    {"chattiness", utils::string::toLower(mod->getSettingValue<std::string>("live-talk-chattiness"))},
+                    {"headphones", mod->getSettingValue<bool>("live-talk-headphones")},
                 })},
   });
   if (mod->getSettingValue<bool>("send-game-context"))

@@ -39,7 +39,7 @@ Have <cy>Death Tracker</c> installed? AskDash reads its stats for the open level
 
 ## Live talk (Windows)
 
-Talk with AskDash <cy>by voice while you play</c>. Press <cy>Ctrl+Shift+L</c> in a level (or the <cg>LIVE</c> button in the pause menu): AskDash listens to your microphone, answers out loud and reacts to your deaths and new bests. Expect jokes at your expense: it is here to have fun with you, and really easy questions may get a joke instead of an answer until you insist.
+Talk with AskDash <cy>by voice while you play</c>. Press <cy>Ctrl+Shift+L</c> in a level (or the <cg>LIVE</c> button in the pause menu): AskDash listens to your microphone, answers out loud, roasts your deaths, hypes good runs while you play and speaks up on its own when it gets quiet. Expect jokes at your expense: it is here to have fun with you, and really easy questions may get a joke instead of an answer until you insist.
 
 Use <cg>headphones</c> if you can: then you can interrupt AskDash by talking. With speakers AskDash doesn't listen while it talks, so it doesn't hear itself. It speaks the language you pick, or the one you speak to it. Subtitles can be turned on in the settings, they show replies in English.
 
@@ -91,6 +91,7 @@ AskDash never sends your account password, save file or anything else from your 
 - **Live talk: I use headphones**: lets you interrupt AskDash while it talks. Leave it off with speakers.
 - **Live talk: language**: the language AskDash speaks, <cy>Auto</c> answers in the language you speak.
 - **Live talk: roast level**: <cy>Gentle</c>, <cy>Spicy</c> or <cy>Savage</c>.
+- **Live talk: chattiness**: how often AskDash speaks up on its own (<cy>Quiet</c>, <cy>Normal</c>, <cy>Chatty</c>).
 - **Live talk: subtitles**: show what AskDash says (English only, off by default).
 - **Your skill**: how good you are at GD, so tips fit you.
 - **API URL**: the AskDash server address. Only change it if you run your own server.

@@ -66,6 +66,13 @@
 			"default": "Spicy",
 			"one-of": ["Gentle", "Spicy", "Savage"]
 		},
+		"live-talk-chattiness": {
+			"type": "string",
+			"name": "Live talk: chattiness",
+			"description": "How often AskDash speaks up on its own: on deaths, during good runs and when it's quiet. <cy>Quiet</c> only comments now and then, <cy>Chatty</c> almost never shuts up.",
+			"default": "Normal",
+			"one-of": ["Quiet", "Normal", "Chatty"]
+		},
 		"live-talk-subtitles": {
 			"type": "bool",
 			"name": "Live talk: subtitles",

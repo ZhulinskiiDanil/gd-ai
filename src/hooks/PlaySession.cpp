@@ -19,10 +19,25 @@ class $modify(AskDashPlayLayer, PlayLayer)
     int attemptStart = 0;
     // Best percent from 0 before this attempt, GD updates the level's own while the player dies
     int levelBest = 0;
+    // Live talk: how long the attempt runs (paused time doesn't count) and the moments already told
+    float runSeconds = 0.f;
+    int milestonesSent = 0;
+    bool pauseSent = false;
   };
 
   // Live talk doesn't comment tiny bests like 3%
   static constexpr int MIN_BEST_TO_TELL = 10;
+  // Mid-run moments: close to the best, and the spot of the most deaths once it has this many
+  static constexpr int NEAR_BEST_PERCENT = 5;
+  static constexpr int MIN_HOTSPOT_DEATHS = 3;
+
+  enum Milestone
+  {
+    PastBest = 1 << 0,
+    NearBest = 1 << 1,
+    Halfway = 1 << 2,
+    Hotspot = 1 << 3,
+  };
 
   bool init(GJGameLevel *level, bool useReplay, bool dontCreateObjects)
   {
@@ -44,6 +59,8 @@ class $modify(AskDashPlayLayer, PlayLayer)
   {
     PlayLayer::resetLevel();
     m_fields->attemptStart = getCurrentPercentInt();
+    m_fields->runSeconds = 0.f;
+    m_fields->milestonesSent = 0;
   }
 
   // Only attempts from 0% outside practice count for deaths and the best percent
@@ -74,12 +91,15 @@ class $modify(AskDashPlayLayer, PlayLayer)
       session->runs[{m_fields->attemptStart, percent}]++;
 
     // ! --- Live talk --- !
+    bool newBest = isFromZero() && percent > m_fields->levelBest;
+    if (newBest)
+      m_fields->levelBest = percent;
+
     if (!live::isActive())
       return;
 
-    if (isFromZero() && percent > m_fields->levelBest && percent >= MIN_BEST_TO_TELL)
+    if (newBest && percent >= MIN_BEST_TO_TELL)
     {
-      m_fields->levelBest = percent;
       live::sendEvent(matjson::makeObject({{"kind", "best"}, {"percent", percent}, {"attempt", m_attempts}}));
       return;
     }
@@ -90,7 +110,79 @@ class $modify(AskDashPlayLayer, PlayLayer)
         {"attempt", m_attempts},
         {"from", m_fields->attemptStart},
         {"practice", static_cast<bool>(m_isPracticeMode)},
+        {"runSeconds", static_cast<int>(m_fields->runSeconds)},
     }));
+  }
+
+  // ! --- Live talk: moments during a run, each told once per attempt --- !
+
+  void postUpdate(float dt)
+  {
+    PlayLayer::postUpdate(dt);
+    if (!live::isActive())
+      return;
+
+    auto fields = m_fields.self();
+
+    // Updates only run unpaused, whatever way the game was resumed
+    if (fields->pauseSent)
+    {
+      fields->pauseSent = false;
+      live::sendEvent(matjson::makeObject({{"kind", "resume"}}));
+    }
+
+    // Percent means nothing in platformer levels
+    if (m_isPlatformer || m_player1->m_isDead)
+      return;
+
+    fields->runSeconds += dt;
+    int percent = getCurrentPercentInt();
+    int best = fields->levelBest;
+    int start = fields->attemptStart;
+    bool fromZero = isFromZero();
+
+    if (fromZero && best >= MIN_BEST_TO_TELL && percent > best)
+      sendMilestone(PastBest, "past-best", percent);
+    else if (fromZero && best >= 20 && percent >= best - NEAR_BEST_PERCENT)
+      sendMilestone(NearBest, "near-best", percent);
+
+    // Past the best is told by itself, halfway is for runs that are already beyond it
+    if (start < 50 && percent >= 50 && (best >= 50 || !fromZero))
+      sendMilestone(Halfway, "halfway", percent);
+
+    if (auto const &session = SessionStore::current())
+    {
+      auto top = session->topDeaths(1);
+      if (!top.empty() && top[0].second >= MIN_HOTSPOT_DEATHS && top[0].first > start && percent > top[0].first)
+        sendMilestone(Hotspot, "hotspot", top[0].first);
+    }
+  }
+
+  void sendMilestone(Milestone milestone, char const *name, int percent)
+  {
+    auto fields = m_fields.self();
+    if (fields->milestonesSent & milestone)
+      return;
+    fields->milestonesSent |= milestone;
+
+    live::sendEvent(matjson::makeObject({
+        {"kind", "run"},
+        {"milestone", name},
+        {"percent", percent},
+        {"best", fields->levelBest},
+        {"from", fields->attemptStart},
+    }));
+  }
+
+  // AskDash doesn't speak up on its own while the game is paused
+  void pauseGame(bool unfocused)
+  {
+    PlayLayer::pauseGame(unfocused);
+    if (!live::isActive() || m_fields->pauseSent)
+      return;
+
+    m_fields->pauseSent = true;
+    live::sendEvent(matjson::makeObject({{"kind", "pause"}}));
   }
 
   void levelComplete()

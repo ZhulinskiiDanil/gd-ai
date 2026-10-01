@@ -111,6 +111,13 @@ static std::vector<Step> buildSteps()
     });
 
     steps.push_back({
+        "How chatty should AskDash be?",
+        "How often it speaks up on its own: on deaths, during good runs and when it's quiet.",
+        {choice("live-talk-chattiness", "Quiet"), choice("live-talk-chattiness", "Normal"), choice("live-talk-chattiness", "Chatty")},
+        3,
+    });
+
+    steps.push_back({
         "Do you play with headphones?",
         "With headphones you can interrupt AskDash by talking. With speakers it doesn't listen while it talks, "
         "so it won't hear itself.",
