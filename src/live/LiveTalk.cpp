@@ -240,6 +240,8 @@ static void start()
                     {"roast", utils::string::toLower(mod->getSettingValue<std::string>("live-talk-roast"))},
                     {"chattiness", utils::string::toLower(mod->getSettingValue<std::string>("live-talk-chattiness"))},
                     {"headphones", mod->getSettingValue<bool>("live-talk-headphones")},
+                    // "default" leaves it to the server
+                    {"voice", utils::string::toLower(mod->getSettingValue<std::string>("live-talk-voice"))},
                 })},
   });
   if (mod->getSettingValue<bool>("send-game-context"))
@@ -278,6 +280,19 @@ void live::stop()
   s.state = State::Off;
   s.subtitle.clear();
   s.subtitleId++;
+}
+
+// The voice is fixed once AskDash has spoken in a session: a new one restarts live talk so it is heard right away
+$execute
+{
+  listenForSettingChanges<std::string>("live-talk-voice", [](std::string)
+                                       {
+    if (!live::isActive())
+      return;
+
+    live::stop();
+    start();
+    Notification::create("Live talk restarted with the new voice", NotificationIcon::Info)->show(); });
 }
 
 void live::toggle()
