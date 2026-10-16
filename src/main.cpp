@@ -35,7 +35,8 @@ static void openChat()
 
 static void addAskDashButton(CCNode *parent, char const *menuID, CircleBaseSize size)
 {
-  auto menu = parent->getChildByID(menuID);
+  // Node IDs can land on a different node when a game update reshuffles the layer
+  auto menu = typeinfo_cast<CCMenu *>(parent->getChildByID(menuID));
   if (!menu)
     return;
 
